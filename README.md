@@ -1,0 +1,1 @@
+# smart-incident-management
