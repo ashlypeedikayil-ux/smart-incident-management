@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SASREF Safety Intelligence</title>
+<style>
+/* Layout: sticky header with filters + tab bar; each tab = KPI strip (summary) then chart grid then record table (detail). */
+:root{
+  --bg:#f7f9fe; --panel:#ffffff; --tint:#eef4ff; --line:#cddcfb; --hair:#e3e9f6;
+  --accent:#2b64f0; --accent-ink:#ffffff;
+  --ink:#0f1a2e; --ink2:#46526d; --muted:#7a859f; --grid:#e8edf7; --axis:#c3cbe0;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good-bg:#e7f6e7; --warn-bg:#fff4dc; --serious-bg:#fdeee7; --crit-bg:#fbe7e7;
+  --good-ink:#0a6b0a; --warn-ink:#8a5a00; --serious-ink:#a3471f; --crit-ink:#a32626;
+  --heat0:#f3f7ff; --heat1:#cde2fb; --heat2:#86b6ef; --heat3:#3987e5; --heat4:#1c5cab; --heat5:#0d366b;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c111c; --panel:#131a29; --tint:#18233d; --line:#2a3960; --hair:#222c42;
+  --accent:#6f98ff; --accent-ink:#0c111c;
+  --ink:#eef2fb; --ink2:#b4bfd8; --muted:#8590ab; --grid:#202a40; --axis:#36415c;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good-bg:#12301a; --warn-bg:#3a2e0e; --serious-bg:#3a2216; --crit-bg:#3d1717;
+  --good-ink:#5fd35f; --warn-ink:#ffcd5c; --serious-ink:#f4a483; --crit-ink:#f08585;
+  --heat0:#172036; --heat1:#184f95; --heat2:#256abf; --heat3:#3987e5; --heat4:#86b6ef; --heat5:#cde2fb;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c111c; --panel:#131a29; --tint:#18233d; --line:#2a3960; --hair:#222c42;
+  --accent:#6f98ff; --accent-ink:#0c111c;
+  --ink:#eef2fb; --ink2:#b4bfd8; --muted:#8590ab; --grid:#202a40; --axis:#36415c;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good-bg:#12301a; --warn-bg:#3a2e0e; --serious-bg:#3a2216; --crit-bg:#3d1717;
+  --good-ink:#5fd35f; --warn-ink:#ffcd5c; --serious-ink:#f4a483; --crit-ink:#f08585;
+  --heat0:#172036; --heat1:#184f95; --heat2:#256abf; --heat3:#3987e5; --heat4:#86b6ef; --heat5:#cde2fb;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding-inline:20px;padding-block:0 48px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--hair)}
+.toprow{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;padding-block:16px 10px}
+.brand{display:flex;flex-direction:column;gap:2px;min-width:0}
+.brand h1{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+.brand p{margin:0;color:var(--ink2);font-size:13px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);background:var(--tint);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters label{min-width:0;max-width:100%;font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+select{min-width:0;max-width:100%;font:inherit;font-size:13px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 10px}
+select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+nav.tabs button{font:inherit;font-size:13px;font-weight:600;color:var(--ink2);background:transparent;border:1px solid transparent;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap}
+nav.tabs button:hover{background:var(--tint)}
+nav.tabs button[aria-selected="true"]{color:var(--accent-ink);background:var(--accent)}
+nav.tabs .count{font-weight:500;opacity:.75;margin-left:4px}
+section.tab{display:flex;flex-direction:column;gap:16px;padding-top:18px}
+.intro{color:var(--ink2);max-width:80ch;margin:0;font-size:13.5px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .lab{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.kpi .val{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.kpi .sub{font-size:12.5px;color:var(--ink2)}
+.kpi.hl{background:var(--tint)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.card h2{margin:0;font-size:14.5px;font-weight:650}
+.card .hint{margin:0;color:var(--muted);font-size:12.5px}
+.chead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.c12{grid-column:span 12}.c8{grid-column:span 8}.c7{grid-column:span 7}.c6{grid-column:span 6}.c5{grid-column:span 5}.c4{grid-column:span 4}
+@media (max-width:980px){.c8,.c7,.c6,.c5,.c4{grid-column:span 12}}
+.chart{position:relative;height:240px}
+.svgc,.svgc svg{display:block;width:100%;height:100%}
+.svgc svg text{font-family:var(--font);font-variant-numeric:tabular-nums}
+.ctip{position:absolute;z-index:5;pointer-events:none;background:var(--panel);color:var(--ink2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px rgba(15,26,46,.12);max-width:260px;display:flex;flex-direction:column;gap:3px}
+.ctip b{color:var(--ink);font-size:12.5px}
+.ctip .tr{display:flex;align-items:center;gap:6px}
+.ctip i{width:9px;height:9px;border-radius:2px;flex:none}
+.chart.sm{height:150px}.chart.tall{height:300px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.p-good{background:var(--good-bg);color:var(--good-ink)}
+.p-warn{background:var(--warn-bg);color:var(--warn-ink)}
+.p-serious{background:var(--serious-bg);color:var(--serious-ink)}
+.p-crit{background:var(--crit-bg);color:var(--crit-ink)}
+.p-info{background:var(--tint);color:var(--accent)}
+.p-mute{background:var(--grid);color:var(--ink2)}
+.tablebox{overflow-x:auto;border:1px solid var(--hair);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:12.8px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--hair);white-space:nowrap}
+th{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--tint);position:sticky;top:0}
+tbody tr:hover{background:var(--tint)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.mono{font-family:var(--mono);font-size:12px}
+td.wrap{white-space:normal;min-width:220px}
+.heat{display:grid;gap:3px;font-size:11.5px}
+.heat .hc{border-radius:5px;display:flex;align-items:center;justify-content:center;min-height:30px;font-variant-numeric:tabular-nums;font-weight:600;cursor:default}
+.heat .hl{color:var(--ink2);display:flex;align-items:center;padding-right:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.heat .hh{color:var(--muted);text-align:center;font-size:10.5px}
+.heatwrap{overflow-x:auto}
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:10px 12px;border:1px solid var(--hair);border-radius:10px;background:var(--panel)}
+.alert .t{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.alert .w{min-width:0}
+.alert .w b{display:block;font-size:13px;font-weight:600}
+.alert .w span{font-size:12px;color:var(--ink2)}
+.feeds{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.feed{border:1px solid var(--hair);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink2)}
+.feed b{font-size:18px;color:var(--ink)}
+.bar{height:6px;border-radius:4px;background:var(--grid);overflow:hidden;display:flex;gap:2px}
+.bar span{display:block;height:100%}
+.watch td .band{min-width:76px;justify-content:center}
+.recs{display:flex;flex-direction:column;gap:10px}
+.rec{border:1px solid var(--hair);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.rec .rt{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.rec .rt b{font-size:13.5px}
+.rec p{margin:0;font-size:12.8px;color:var(--ink2)}
+.rec .why{display:flex;flex-wrap:wrap;gap:6px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-size:12.5px;font-weight:600;border-radius:8px;padding:6px 12px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:hover{filter:brightness(1.05)}
+.wx{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.wxc{border:1px solid var(--hair);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.wxc .k{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.wxc .v{font-size:20px;font-weight:700}
+.wxc .s{font-size:12px;color:var(--ink2)}
+.pyr{display:flex;flex-direction:column;align-items:center;gap:4px}
+.pyr div{border-radius:6px;text-align:center;padding:7px 4px;font-size:12.5px;font-weight:600;color:#fff;max-width:100%}
+.note{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px;margin-top:6px}
+.tblctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:6px;font-size:12.8px}
+.list .li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--hair);border-radius:8px}
+.list .li small{display:block;color:var(--muted);font-size:11.5px}
+@media (max-width:560px){.wrap{padding-inline:16px}.kpi .val{font-size:24px}.alert{grid-template-columns:1fr auto}.alert .t{grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style>html,body{margin:0}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<header class="top">
+  <div class="toprow">
+    <div class="brand">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h1>SASREF Safety Intelligence</h1><span class="tag">Illustrative target-state data</span></div>
+      <p>Incidents, near misses and safety observations from SAP S/4HANA EHS and smart feeds, by PM functional location. As of <span id="asof"></span>.</p>
+    </div>
+    <div class="filters">
+      <label for="fArea">Area <select id="fArea"></select></label>
+      <label for="fCat">Event category <select id="fCat" style="width:min(260px,62vw)"></select></label>
+      <label for="fPeriod">Period <select id="fPeriod"><option value="3">Last 3 months</option><option value="6">Last 6 months</option><option value="12" selected>Last 12 months</option></select></label>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+    <button role="tab" data-tab="incidents" aria-selected="false">Incidents<span class="count" id="cInc"></span></button>
+    <button role="tab" data-tab="nearmiss" aria-selected="false">Near misses<span class="count" id="cNm"></span></button>
+    <button role="tab" data-tab="obs" aria-selected="false">Safety observations<span class="count" id="cObs"></span></button>
+    <button role="tab" data-tab="outlook" aria-selected="false">Risk outlook</button>
+  </nav>
+</header>
+
+<!-- OVERVIEW -->
+<section class="tab" id="t-overview">
+  <p class="intro">Right-time view for management: what is happening now, what is overdue against each record type's closure timeline, and where it is concentrated. Open backlog counts every open record in the selected area, whatever its age; volumes follow the selected period.</p>
+  <div class="kpis" id="ovKpis"></div>
+  <div class="grid">
+    <div class="card c7">
+      <div class="chead"><div><h2>Live alerts, last 24 hours</h2><p class="hint">Smart-feed detections routed to the duty role. Reviewer classifies before a SAP record is created.</p></div><span class="pill p-info">Event broker</span></div>
+      <div class="alerts" id="alerts"></div>
+    </div>
+    <div class="card c5">
+      <div class="chead"><div><h2>Feed coverage and health</h2><p class="hint">Stale or offline feeds count as coverage impairments with an owner.</p></div></div>
+      <div class="feeds" id="feeds"></div>
+      <h2 style="margin-top:6px">Safety pyramid, selected period</h2>
+      <div class="pyr" id="pyramid"></div>
+    </div>
+    <div class="card c12">
+      <div class="chead"><div><h2>Monthly reporting volume</h2><p class="hint">Each record type on its own scale, complete months only. Hover a bar for the month's count.</p></div></div>
+      <div class="grid" style="gap:12px">
+        <div class="c4"><div class="legend"><span><i style="background:var(--s1)"></i>Incidents</span></div><div class="chart sm"><canvas id="chVolInc"></canvas></div></div>
+        <div class="c4"><div class="legend"><span><i style="background:var(--s2)"></i>Near misses</span></div><div class="chart sm"><canvas id="chVolNm"></canvas></div></div>
+        <div class="c4"><div class="legend"><span><i style="background:var(--s3)"></i>Safety observations</span></div><div class="chart sm"><canvas id="chVolObs"></canvas></div></div>
+      </div>
+    </div>
+    <div class="card c6">
+      <div class="chead"><div><h2>Closure ageing against timeline</h2><p class="hint">Open records by how far they are past the deadline that applies to their type.</p></div></div>
+      <div class="legend"><span><i style="background:var(--good)"></i>Within timeline</span><span><i style="background:var(--warn)"></i>Overdue 1–30 days</span><span><i style="background:var(--serious)"></i>Overdue 31–90 days</span><span><i style="background:var(--crit)"></i>Overdue over 90 days</span></div>
+      <div class="chart"><canvas id="chAgeing"></canvas></div>
+    </div>
+    <div class="card c6">
+      <div class="chead"><div><h2>Overdue records by area</h2><p class="hint">Darker cells hold more overdue open records. Use it to direct escalation.</p></div></div>
+      <div class="heatwrap"><div class="heat" id="areaHeat"></div></div>
+    </div>
+    <div class="card c12">
+      <div class="chead"><div><h2>Event categories across record types</h2><p class="hint">SASREF incident categories. Near misses and observations carry the category of the event they could have become. Click a row to filter the dashboard.</p></div></div>
+      <div class="tablebox"><table id="catTable"></table></div>
+    </div>
+    <div class="card c12">
+      <div class="chead"><div><h2>Most overdue open records</h2><p class="hint">Assigned to positions from the HR organisation structure; reminders and escalation follow the position holder.</p></div>
+      <div class="tblctl"><label for="ovType">Type <select id="ovType"><option value="ALL">All types</option><option value="INC">Incidents</option><option value="NM">Near misses</option><option value="OBS">Observations</option></select></label></div></div>
+      <div class="tablebox"><table id="ovTable"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- INCIDENTS -->
+<section class="tab" id="t-incidents" hidden>
+  <p class="intro">Formal investigations need RCA and closure in 45 days, with one further 45 days only on management approval; the original due date is kept for reporting. Informal investigations need no RCA. Priority follows the approved consequence matrix (Level 1 to 5).</p>
+  <div class="kpis" id="incKpis"></div>
+  <div class="grid">
+    <div class="card c6"><div class="chead"><div><h2>Incidents by event category</h2><p class="hint">SASREF incident categories, selected period.</p></div></div><div class="chart tall"><canvas id="chIncCat"></canvas></div></div>
+    <div class="card c6"><div class="chead"><div><h2>Incidents by sub-category</h2><p class="hint">EHS: injury, illness, fire, LOPC, RV/IPF, environment. I&amp;R: asset failures, trips, shutdown.</p></div></div><div class="chart tall"><canvas id="chIncSub"></canvas></div></div>
+    <div class="card c5"><div class="chead"><div><h2>Incidents by priority</h2><p class="hint">Priority 4 and 5 are too rare to forecast directly; leading indicators carry the outlook.</p></div></div><div class="chart"><canvas id="chIncPri"></canvas></div></div>
+    <div class="card c7"><div class="chead"><div><h2>Documented causes, Pareto</h2><p class="hint">Approved RCA findings plus informal review causes. Labels show cumulative share.</p></div></div><div class="chart tall"><canvas id="chIncCause"></canvas></div></div>
+    <div class="card c12"><div class="chead"><div><h2>Formal investigations in flight</h2><p class="hint">Days left against the 45-day clock, extension status and RCA progress.</p></div></div><div class="list" id="formalList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))"></div></div>
+    <div class="card c12"><div class="chead"><div><h2>Open incidents</h2><p class="hint">Sorted by days overdue.</p></div></div><div class="tablebox"><table id="incTable"></table></div></div>
+  </div>
+</section>
+
+<!-- NEAR MISS -->
+<section class="tab" id="t-nearmiss" hidden>
+  <p class="intro">Near misses are the strongest leading indicator. Smart feeds add camera-detected vehicle proximity, gas alarms that cleared without exposure and pump trends corrected before failure, each tagged to the functional location after human review.</p>
+  <div class="kpis" id="nmKpis"></div>
+  <div class="grid">
+    <div class="card c7"><div class="chead"><div><h2>When near misses happen</h2><p class="hint">Hour of day by weekday. Peaks around shift handover and afternoon heat point to where supervision helps most.</p></div></div><div class="heatwrap"><div class="heat" id="nmHeat"></div></div></div>
+    <div class="card c5"><div class="chead"><div><h2>Near misses by hazard</h2><p class="hint">Selected period.</p></div></div><div class="chart tall"><canvas id="chNmHaz"></canvas></div></div>
+    <div class="card c6"><div class="chead"><div><h2>Reporting source</h2><p class="hint">Share of near misses created from each feed after review.</p></div></div><div class="chart"><canvas id="chNmSrc"></canvas></div></div>
+    <div class="card c6"><div class="chead"><div><h2>Precursor clusters</h2><p class="hint">Functional locations with three or more near misses in 90 days. A precursor is a signal, not proof of cause.</p></div></div><div class="list" id="precursors"></div></div>
+    <div class="card c12"><div class="chead"><div><h2>Open near misses</h2><p class="hint">Sorted by days overdue.</p></div></div><div class="tablebox"><table id="nmTable"></table></div></div>
+  </div>
+</section>
+
+<!-- OBSERVATIONS -->
+<section class="tab" id="t-obs" hidden>
+  <p class="intro">Safety observations are high volume and the largest share of the open backlog. The view separates unsafe acts from unsafe conditions and shows where open findings cluster, so custodians can clear them before they become near misses.</p>
+  <div class="kpis" id="obsKpis"></div>
+  <div class="grid">
+    <div class="card c7"><div class="chead"><div><h2>Unsafe acts and unsafe conditions by month</h2><p class="hint">Complete months only. Hover for monthly counts.</p></div></div>
+      <div class="legend"><span><i style="background:var(--s1)"></i>Unsafe conditions</span><span><i style="background:var(--s2)"></i>Unsafe acts</span></div>
+      <div class="chart"><canvas id="chObsTrend"></canvas></div></div>
+    <div class="card c5"><div class="chead"><div><h2>Observations by category</h2><p class="hint">Selected period.</p></div></div><div class="chart"><canvas id="chObsCat"></canvas></div></div>
+    <div class="card c6"><div class="chead"><div><h2>Functional locations with most open observations</h2><p class="hint">Repeat findings at one asset suggest the action did not hold.</p></div></div><div class="chart"><canvas id="chObsFl"></canvas></div></div>
+    <div class="card c6"><div class="chead"><div><h2>Backlog by owning position</h2><p class="hint">Open and overdue observations per area custodian position.</p></div></div>
+      <div class="legend"><span><i style="background:var(--good)"></i>Within timeline</span><span><i style="background:var(--crit)"></i>Overdue</span></div>
+      <div class="chart"><canvas id="chObsOwner"></canvas></div></div>
+    <div class="card c12"><div class="chead"><div><h2>Open safety observations</h2><p class="hint">Sorted by days overdue. Showing the 60 most overdue.</p></div></div><div class="tablebox"><table id="obsTable"></table></div></div>
+  </div>
+</section>
+
+<!-- OUTLOOK -->
+<section class="tab" id="t-outlook" hidden>
+  <p class="intro">Predictive and prescriptive outlook. It ranks areas by the likelihood that an incident, near miss or unsafe condition develops over the next shift, day and week, shows the drivers, and suggests preventive actions from approved procedures. It estimates likelihood, not a certain event. EHS approves every action, and the model runs in shadow mode until back-tests pass.</p>
+  <div class="grid">
+    <div class="card c12"><div class="chead"><div><h2>Weather and condition triggers, Jubail</h2><p class="hint">Forecast for the next 24 hours against thresholds agreed with EHS.</p></div><span class="pill p-mute">Illustrative forecast</span></div><div class="wx" id="wx"></div></div>
+    <div class="card c12"><div class="chead"><div><h2>Area watch list</h2><p class="hint">Likelihood band per horizon with the contributing drivers. Every rating shows its drivers; no individual scoring.</p></div></div><div class="tablebox watch"><table id="watch"></table></div></div>
+    <div class="card c7"><div class="chead"><div><h2>Recommended preventive actions</h2><p class="hint">From the approved action library and actions that worked after earlier cases. Awaiting EHS decision.</p></div></div><div class="recs" id="recs"></div></div>
+    <div class="card c5"><div class="chead"><div><h2>Late closure risk, next 10 days</h2><p class="hint">Open records likely to miss their deadline, based on age, owner workload, extension history and action status.</p></div></div><div class="list" id="lateRisk"></div></div>
+  </div>
+</section>
+
+<p class="note">All figures on this page are simulated to show the target state described in the SASREF Smart Incident Management proposal; they are not SASREF records. Closure timelines: formal investigation 45 days (from the proposal); informal investigation 30, near miss 30 and safety observation 14 days are placeholders to be confirmed in discovery. Functional locations and positions are illustrative. Event categories follow the SASREF incident form; mapping near misses and observations to a category is an assumption for this demo.</p>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- deterministic sample data ---------- */
+const TODAY = new Date(2026,9,5,21,0);
+const DAY = 864e5;
+let seed = 20261005;
+function R(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+function pickW(items){const tot=items.reduce((s,x)=>s+x[1],0);let r=R()*tot;for(const x of items){if((r-=x[1])<=0)return x[0]}return items[items.length-1][0]}
+function pick(a){return a[Math.floor(R()*a.length)]}
+function poisson(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=R()}while(p>L);return k-1}
+
+const AREAS=[
+ {code:"CDU",name:"Crude & Vacuum",w:16,tags:["P-101A","P-102B","E-110","F-101","V-120","C-101"]},
+ {code:"HCU",name:"Hydrocracker",w:15,tags:["K-201","R-201","P-215A","E-230","V-240","F-201"]},
+ {code:"NRU",name:"Naphtha & Reformer",w:11,tags:["R-301","P-305A","E-320","V-330","K-301"]},
+ {code:"SRU",name:"Sulphur Recovery",w:8,tags:["R-401","V-410","P-402A","E-415"]},
+ {code:"UTL",name:"Utilities & Power",w:12,tags:["B-501","P-510A","CT-520","G-501","AC-530"]},
+ {code:"TKF",name:"Tank Farm",w:13,tags:["TK-601","TK-612","TK-625","P-640A","MB-650"]},
+ {code:"MRT",name:"Marine Terminal",w:9,tags:["LA-701","LA-702","P-710A","JT-720"]},
+ {code:"ADM",name:"Admin, Roads & Car Parks",w:16,tags:["CP-NORTH","CP-MAIN","GATE-2","RD-04","BLDG-ADM"]}
+];
+const TIMELINE={FORMAL:45,INFORMAL:30,NM:30,OBS:14};
+const HOURW=[1,1,1,1,1.2,2.2,3.4,3.0,2.4,2.4,2.6,2.6,2.8,3.4,3.6,3.2,2.6,2.8,3.6,3.0,2,1.6,1.3,1.1];
+const CATS=[
+ {code:"EHS",short:"EHS",label:"EHS (Injury, illness, fire, LOPC, RV/IPF, environment)",w:46,subs:[["Injury",34],["Illness",8],["Fire",7],["LOPC",27],["RV/IPF",12],["Environment",12]]},
+ {code:"IR",short:"I&R",label:"I&R (Asset failures & trips, shutdown)",w:29,subs:[["Asset failure",55],["Trip",35],["Shutdown",10]]},
+ {code:"PQ",short:"Product Quality",label:"Product Quality Incident (Off-spec product)",w:8,subs:[["Off-spec product",100]]},
+ {code:"RTA",short:"Road Traffic",label:"Road Traffic Accident (No Injury)",w:10,subs:[["Road traffic, no injury",100]]},
+ {code:"SEC",short:"Security",label:"Security Incident",w:7,subs:[["Security",100]]}
+];
+const CATMAP=Object.fromEntries(CATS.map(c=>[c.code,c]));
+const INC_CAT=CATS.map(c=>[c.code,c.w]);
+function catFor(type,hz){
+  if(/Vehicle/.test(hz)) return ["RTA","Road traffic, no injury"];
+  if(/Gas alarm|Leak/.test(hz)||(/containment/.test(hz)&&R()<.8)) return ["EHS","LOPC"];
+  if(/pump|Defect/.test(hz)) return ["IR","Asset failure"];
+  if(/Hot work/.test(hz)) return ["EHS","Fire"];
+  if(/Heat stress/.test(hz)) return ["EHS","Illness"];
+  if(/Restricted zone|Lighting/.test(hz)&&R()<.25) return ["SEC","Security"];
+  if(/Procedure|permit|containment/.test(hz)&&R()<.2) return ["PQ","Off-spec product"];
+  if(/Procedure|permit/.test(hz)&&R()<.3) return ["IR",pick(["Trip","Asset failure"])];
+  return ["EHS",/Housekeeping|Blocked|Scaffold|Slip|height|Dropped|PPE|lifting|Electrical/.test(hz)?"Injury":pick(["Injury","Environment","RV/IPF"])];
+}
+const CAUSES=[["Procedure not followed",24],["Equipment failure",19],["Inspection or maintenance gap",15],["Handover or communication",12],["Inadequate risk assessment",10],["Heat, dust or weather",8],["Training or competence",7],["Design or engineering",5]];
+const NM_HAZ_BY_SRC={
+ "CCTV vision":[["Vehicle–pedestrian proximity",55],["Exclusion zone entry (lifting)",45]],
+ "Gas detectors":[["Gas alarm cleared, no exposure",100]],
+ "Pump sensors":[["Abnormal pump trend corrected",100]],
+ "Drone inspection":[["Defect found before failure",100]],
+ "Staff report":[["Dropped object",18],["Minor loss of containment",16],["Work at height",14],["Vehicle–pedestrian proximity",12],["Hot work",11],["Electrical",8],["Exclusion zone entry (lifting)",8],["Slip, trip or fall",13]]
+};
+const OBS_CAT=[["PPE",20,"Act"],["Restricted zone entry",9,"Act"],["Procedure or permit deviation",13,"Act"],["Housekeeping",17,"Condition"],["Blocked access or exit",9,"Condition"],["Leak or drip",10,"Condition"],["Scaffold or ladder condition",8,"Condition"],["Heat stress controls",7,"Condition"],["Lighting or signage",7,"Condition"]];
+const STUCK={FORMAL:.3,INFORMAL:.14,NM:.2,OBS:.24};
+
+function srcFor(type,area){
+  if(type==="INC") return pickW([["Staff report",82],["CCTV vision",7],["Gas detectors",6],["Pump sensors",5]]);
+  const w=[["Staff report",type==="NM"?58:72],["CCTV vision",type==="NM"?18:20],["Gas detectors",type==="NM"?11:3],["Pump sensors",type==="NM"?9:4]];
+  if(area.code==="TKF") w.push(["Drone inspection",8]);
+  if(area.code==="ADM"){w[2][1]=1;w[3][1]=0;w[1][1]+=10}
+  return pickW(w);
+}
+const recs=[];let n={INC:0,NM:0,OBS:0};
+for(let d=364;d>=0;d--){
+  const date=new Date(TODAY.getTime()-d*DAY);
+  const m=date.getMonth();const season=(m>=5&&m<=8)?1.3:(m===4||m===9?1.12:1);
+  const want={INC:.26*season,NM:1.15*season,OBS:6.6*season};
+  for(const type of ["INC","NM","OBS"]){
+    const k=poisson(want[type]);
+    for(let i=0;i<k;i++){
+      const area=pickW(AREAS.map(a=>[a,a.w]));
+      const hour=pickW(HOURW.map((w,h)=>[h,w*(m>=5&&m<=8&&h>=12&&h<=15?1.3:1)]));
+      const created=new Date(date.getFullYear(),date.getMonth(),date.getDate(),hour,Math.floor(R()*60));
+      if(created>TODAY) continue;
+      const r={type,area:area.code,areaName:area.name,fl:`SAS-${area.code}-${pick(area.tags)}`,created,hour,dow:(created.getDay()+6)%7,shift:(hour>=6&&hour<18)?"Day":"Night"};
+      r.source=srcFor(type,area);
+      if(type==="INC"){
+        r.ecat=pickW(INC_CAT);r.sub=pickW(CATMAP[r.ecat].subs);r.cat=CATMAP[r.ecat].short;
+        r.pri=/LOPC|Fire|Shutdown/.test(r.sub)?pickW([[1,28],[2,30],[3,28],[4,11],[5,3]]):pickW([[1,50],[2,31],[3,16],[4,2.6],[5,0.4]]);
+        r.inv=(r.pri>=3||R()<.08)?"FORMAL":"INFORMAL";
+        r.cause=pickW(CAUSES);
+        r.hp=r.pri>=3;
+        r.title=r.sub;
+      }else if(type==="NM"){
+        r.cat=pickW(NM_HAZ_BY_SRC[r.source]);
+        r.hp=/containment|Gas|lifting|height|Dropped/.test(r.cat)?R()<.32:R()<.08;
+        r.title=r.cat;[r.ecat,r.sub]=catFor(type,r.cat);
+      }else{
+        const c=pickW(OBS_CAT.map(x=>[x,x[1]]));
+        r.cat=c[0];r.kind=c[2];r.hp=R()<.03;r.title=c[0];[r.ecat,r.sub]=catFor(type,r.cat);
+      }
+      const key=type==="INC"?r.inv:type;
+      r.tl=TIMELINE[key];
+      r.due=new Date(created.getTime()+r.tl*DAY);
+      r.dueOrig=r.due;
+      r.owner=(type==="INC"?"Investigation Lead":(type==="NM"?"Area Custodian":pick(["Area Custodian","Area Custodian","Shift Supervisor"])))+" – "+area.code;
+      let dur;
+      if(R()<STUCK[key]) dur=Infinity;
+      else dur=r.tl*(0.3+Math.pow(R(),1.3)*1.35);
+      const age=(TODAY-created)/DAY;
+      if(dur<=age){r.status="Closed";r.closed=new Date(created.getTime()+dur*DAY);r.closeDays=dur}
+      else r.status="Open";
+      if(type==="INC"&&r.inv==="FORMAL"){
+        r.ext="None";
+        if(r.status==="Open"&&age>38){const x=R();if(x<.35){r.ext="Approved";r.due=new Date(r.dueOrig.getTime()+45*DAY)}else if(x<.6){r.ext="Pending"}}
+        r.rca=r.status==="Closed"?"Complete":(age>30?pickW([["Complete",30],["In progress",50],["Not started",20]]):pickW([["In progress",60],["Not started",40]]));
+      }
+      n[type]++;
+      r.id=`${type==="OBS"?"OBS":type}-26-${String(n[type]).padStart(type==="OBS"?5:4,"0")}`;
+      recs.push(r);
+    }
+  }
+}
+recs.forEach(r=>{r.overdue=r.status==="Open"?Math.floor((TODAY-r.due)/DAY):null;r.overdueOrig=r.status==="Open"?Math.floor((TODAY-r.dueOrig)/DAY):null;r.age=Math.floor((TODAY-r.created)/DAY)});
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt=x=>x.toLocaleString("en-US");
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+const dfmt=d=>d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const TYPE_LABEL={INC:"Incident",NM:"Near miss",OBS:"Observation"};
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function statusPill(r){
+  if(r.status==="Closed") return `<span class="pill p-good">Closed</span>`;
+  const o=r.overdue;
+  if(o<=0) return `<span class="pill p-good">Due in ${-o} d</span>`;
+  if(o<=30) return `<span class="pill p-warn">${o} d overdue</span>`;
+  if(o<=90) return `<span class="pill p-serious">${o} d overdue</span>`;
+  return `<span class="pill p-crit">${o} d overdue</span>`;
+}
+function ageBucket(r){const o=r.overdue;return o<=0?0:o<=30?1:o<=90?2:3}
+
+let state={area:"ALL",cat:"ALL",months:12,tab:"overview"};
+try{const t=localStorage.getItem("sasref-si-tab");if(t)state.tab=t}catch(e){}
+if(location.hash&&/^#(overview|incidents|nearmiss|obs|outlook)$/.test(location.hash))state.tab=location.hash.slice(1);
+
+const fArea=$("#fArea");
+fArea.innerHTML=`<option value="ALL">All areas</option>`+AREAS.map(a=>`<option value="${a.code}">${a.name}</option>`).join("");
+const fCat=$("#fCat");fCat.innerHTML=`<option value="ALL">All categories</option>`+CATS.map(c=>`<option value="${c.code}">${esc(c.label)}</option>`).join("");
+$("#asof").textContent=TODAY.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"long",year:"numeric"})+", 21:00 AST";
+
+function inArea(r){return (state.area==="ALL"||r.area===state.area)&&(state.cat==="ALL"||r.ecat===state.cat)}
+function inPeriod(r){return r.created>=new Date(TODAY.getFullYear(),TODAY.getMonth()-state.months+1,1)}
+function monthKeys(){const out=[];for(let i=state.months-1;i>=0;i--){const d=new Date(TODAY.getFullYear(),TODAY.getMonth()-i,1);out.push([d.getFullYear(),d.getMonth()])}return out}
+
+/* ---------- charts ---------- */
+/* ---------- built-in SVG charts (no external library) ---------- */
+const SVGNS="http://www.w3.org/2000/svg";
+const _mctx=document.createElement("canvas").getContext("2d");
+function _tw(t,size){_mctx.font=`${size||11}px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`;return _mctx.measureText(t).width}
+function _nice(max){if(max<=0)return{max:1,step:1};const raw=max/4;const p=Math.pow(10,Math.floor(Math.log10(raw)));const m=raw/p;const st=(m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p;const s=Math.max(1,st);return{max:Math.ceil(max/s)*s,step:s}}
+function _el(tag,attrs,parent){const e=document.createElementNS(SVGNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function _trunc(t,w,size){if(_tw(t,size)<=w)return t;while(t.length>1&&_tw(t+"…",size)>w)t=t.slice(0,-1);return t+"…"}
+function _fmtN(v){return Number.isInteger(v)?v.toLocaleString("en-US"):v.toFixed(1)}
+class Chart{
+  constructor(cv,cfg){this.cv=cv;this.cfg=cfg;this.box=cv.parentNode;cv.style.display="none";
+    this.wrap=document.createElement("div");this.wrap.className="svgc";this.box.appendChild(this.wrap);
+    this.tip=document.createElement("div");this.tip.className="ctip";this.tip.hidden=true;this.box.appendChild(this.tip);
+    this.draw();if(window.ResizeObserver){this.lastW=this.box.clientWidth;this.ro=new ResizeObserver(()=>{if(this.box.clientWidth!==this.lastW){this.lastW=this.box.clientWidth;this.draw()}});this.ro.observe(this.box)}}
+  destroy(){if(this.ro)this.ro.disconnect();this.wrap.remove();this.tip.remove();this.cv.style.display=""}
+  color(ds,i){const c=ds.backgroundColor||ds.borderColor;return Array.isArray(c)?c[i]:c}
+  showTip(i,x,y){const o=this.cfg.options||{},cb=(o.plugins&&o.plugins.tooltip&&o.plugins.tooltip.callbacks)||{};const L=this.cfg.data.labels[i];
+    const title=cb.title?cb.title([{dataIndex:i}]):(Array.isArray(L)?L.join(" "):L);
+    const rows=this.cfg.data.datasets.map(ds=>{const v=ds.data[i];const txt=cb.label?cb.label({raw:v,dataIndex:i,dataset:ds}):` ${ds.label}: ${_fmtN(v)}`;return `<div class="tr"><i style="background:${this.color(ds,i)}"></i>${String(txt).trim()}</div>`}).join("");
+    this.tip.innerHTML=`<b>${title}</b>${rows}`;this.tip.hidden=false;
+    const bw=this.box.clientWidth,tw=this.tip.offsetWidth;let lx=x+14;if(lx+tw>bw)lx=Math.max(0,x-tw-14);this.tip.style.left=lx+"px";this.tip.style.top=Math.max(0,y-10)+"px"}
+  hideTip(){this.tip.hidden=true}
+  draw(){
+    const W=this.box.clientWidth,H=this.box.clientHeight;if(!W||!H)return;
+    const cfg=this.cfg,o=cfg.options||{},labels=cfg.data.labels,dss=cfg.data.datasets;
+    const horiz=o.indexAxis==="y",line=cfg.type==="line";
+    const stacked=!!(o.scales&&((o.scales.x&&o.scales.x.stacked)||(o.scales.y&&o.scales.y.stacked)));
+    const n=labels.length;
+    const totals=labels.map((_,i)=>stacked?dss.reduce((s,d)=>s+(d.data[i]||0),0):Math.max(...dss.map(d=>d.data[i]||0)));
+    const nice=_nice(Math.max(0,...totals));
+    this.wrap.innerHTML="";
+    const svg=_el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,role:"img"},this.wrap);
+    const fs=11,muted="var(--muted)",ink2="var(--ink2)",grid="var(--grid)",axis="var(--axis)";
+    const ticks=[];for(let v=0;v<=nice.max+1e-9;v+=nice.step)ticks.push(v);
+    const self=this;
+    function hit(x,y,w,h,i){const r=_el("rect",{x,y,width:Math.max(0,w),height:Math.max(0,h),fill:"transparent",style:"cursor:default"},svg);
+      r.addEventListener("mousemove",e=>{const b=self.box.getBoundingClientRect();self.showTip(i,e.clientX-b.left,e.clientY-b.top);if(self.hl)self.hl.setAttribute("opacity",0);if(line){self.cross.setAttribute("x1",x+w/2);self.cross.setAttribute("x2",x+w/2);self.cross.setAttribute("opacity",1)}});
+      r.addEventListener("mouseleave",()=>{self.hideTip();if(self.cross)self.cross.setAttribute("opacity",0)})}
+    if(horiz){
+      const lines=labels.map(l=>Array.isArray(l)?l:[l]);
+      const maxLW=Math.min(W*0.46,Math.max(...lines.flat().map(t=>_tw(String(t),11.5)))+18);
+      const pl=maxLW,pr=12,pt=4,pb=22,pw=W-pl-pr,ph=H-pt-pb,band=ph/n;
+      ticks.forEach(t=>{const x=pl+t/nice.max*pw;_el("line",{x1:x,x2:x,y1:pt,y2:pt+ph,stroke:grid,"stroke-width":1},svg);const tx=_el("text",{x,y:H-6,"text-anchor":"middle",fill:muted,"font-size":fs},svg);tx.textContent=_fmtN(t)});
+      _el("line",{x1:pl,x2:pl,y1:pt,y2:pt+ph,stroke:axis},svg);
+      const bh=Math.min(dss[0].maxBarThickness||28,band*0.72);
+      labels.forEach((_,i)=>{const cy=pt+band*i+band/2;const ls=lines[i];
+        ls.forEach((t,k)=>{const tx=_el("text",{x:pl-8,y:cy+(k-(ls.length-1)/2)*13+4,"text-anchor":"end",fill:k?muted:ink2,"font-size":k?10.5:11.5},svg);tx.textContent=_trunc(String(t),maxLW-10,k?10.5:11.5)});
+        let x0=pl;dss.forEach((ds,j)=>{const v=ds.data[i]||0;if(!v)return;let w=v/nice.max*pw;const last=!dss.slice(j+1).some(d=>d.data[i]);const gap=stacked&&!last?2:0;
+          _el("rect",{x:x0,y:cy-bh/2,width:Math.max(1,w-gap),height:bh,rx:Math.min(4,bh/2),fill:this.color(ds,i)},svg);x0+=w});
+        hit(pl,pt+band*i,pw,band,i)});
+    }else{
+      const maxTick=_tw(_fmtN(nice.max),fs);
+      const pl=maxTick+12,pr=10,pt=8,pb=22,pw=W-pl-pr,ph=H-pt-pb,band=pw/n;
+      ticks.forEach(t=>{const y=pt+ph-t/nice.max*ph;_el("line",{x1:pl,x2:pl+pw,y1:y,y2:y,stroke:grid},svg);const tx=_el("text",{x:pl-6,y:y+4,"text-anchor":"end",fill:muted,"font-size":fs},svg);tx.textContent=_fmtN(t)});
+      _el("line",{x1:pl,x2:pl+pw,y1:pt+ph,y2:pt+ph,stroke:axis},svg);
+      const every=Math.max(1,Math.ceil(n/Math.floor(pw/34)));
+      labels.forEach((l,i)=>{if(i%every)return;const tx=_el("text",{x:pl+band*i+band/2,y:H-6,"text-anchor":"middle",fill:muted,"font-size":fs},svg);tx.textContent=_trunc(Array.isArray(l)?l[0]:String(l),band*every-4,fs)});
+      if(line){
+        this.cross=_el("line",{x1:0,x2:0,y1:pt,y2:pt+ph,stroke:axis,"stroke-dasharray":"3 3",opacity:0},svg);
+        dss.forEach(ds=>{const pts=ds.data.map((v,i)=>[pl+band*i+band/2,pt+ph-v/nice.max*ph]);
+          _el("path",{d:pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(""),fill:"none",stroke:ds.borderColor,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
+          const e=pts[pts.length-1];_el("circle",{cx:e[0],cy:e[1],r:4,fill:ds.borderColor,stroke:"var(--panel)","stroke-width":2},svg)});
+      }else{
+        const bw=Math.min(dss[0].maxBarThickness||28,band*0.72);
+        labels.forEach((_,i)=>{const cx=pl+band*i+band/2;let y0=pt+ph;dss.forEach(ds=>{const v=ds.data[i]||0;if(!v)return;const h=v/nice.max*ph;const r=Math.min(4,bw/2,h);const x=cx-bw/2,y=y0-h;
+          _el("path",{d:`M${x} ${y0}V${y+r}Q${x} ${y} ${x+r} ${y}H${x+bw-r}Q${x+bw} ${y} ${x+bw} ${y+r}V${y0}Z`,fill:this.color(ds,i)},svg);y0=y})});
+      }
+      labels.forEach((_,i)=>hit(pl+band*i,pt,band,ph,i));
+    }
+  }
+}
+Chart.defaults={font:{},color:""};
+
+const charts={};
+function mk(id,cfg){if(charts[id])charts[id].destroy();const el=document.getElementById(id);if(!el||el.closest("[hidden]"))return;charts[id]=new Chart(el,cfg)}
+function baseOpts(extra){
+  const ink2=css("--ink2"),grid=css("--grid"),muted=css("--muted"),panel=css("--panel"),ink=css("--ink"),line=css("--line");
+  Chart.defaults.font.family=css("--font");Chart.defaults.color=muted;
+  const o={responsive:true,maintainAspectRatio:false,animation:matchMedia("(prefers-reduced-motion: reduce)").matches?false:{duration:300},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:panel,titleColor:ink,bodyColor:ink2,borderColor:line,borderWidth:1,padding:10,cornerRadius:8,boxPadding:4,usePointStyle:true}},
+    scales:{x:{grid:{display:false},border:{color:css("--axis")},ticks:{color:muted,font:{size:11}}},y:{grid:{color:grid},border:{display:false},ticks:{color:muted,font:{size:11},precision:0},beginAtZero:true}}};
+  return Object.assign(o,extra||{});
+}
+function hbarOpts(){const o=baseOpts();o.indexAxis="y";o.scales={x:{grid:{color:css("--grid")},border:{display:false},ticks:{color:css("--muted"),font:{size:11},precision:0},beginAtZero:true},y:{grid:{display:false},border:{color:css("--axis")},ticks:{color:css("--ink2"),font:{size:11.5}}}};return o}
+const BAR={borderRadius:4,borderSkipped:false,maxBarThickness:28,categoryPercentage:.8,barPercentage:.9};
+
+/* ---------- render ---------- */
+function kpi(lab,val,sub,hl){return `<div class="kpi${hl?" hl":""}"><span class="lab">${lab}</span><span class="val">${val}</span><span class="sub">${sub}</span></div>`}
+function table(id,rows,cols){
+  const el=document.getElementById(id);
+  el.innerHTML=`<thead><tr>${cols.map(c=>`<th class="${c.cls||""}">${c.h}</th>`).join("")}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${cols.map(c=>`<td class="${c.cls||""}">${c.f(r)}</td>`).join("")}</tr>`).join(""):`<tr><td colspan="${cols.length}" style="color:var(--muted)">No open records for this selection.</td></tr>`}</tbody>`;
+}
+const COL={
+  id:{h:"Record",cls:"mono",f:r=>r.id},
+  type:{h:"Type",f:r=>r.type==="INC"?`${r.inv==="FORMAL"?"Formal":"Informal"} incident`:TYPE_LABEL[r.type]},
+  title:{h:"Category",f:r=>esc(r.title)},
+  ecat:{h:"Event category",f:r=>`<span class="pill p-info">${esc(CATMAP[r.ecat].short)}</span> <span style="color:var(--ink2)">${esc(r.sub)}</span>`},
+  fl:{h:"Functional location",cls:"mono",f:r=>r.fl},
+  owner:{h:"Owning position",f:r=>esc(r.owner)},
+  src:{h:"Source",f:r=>r.source},
+  created:{h:"Created",f:r=>dfmt(r.created)},
+  due:{h:"Due",f:r=>dfmt(r.due)},
+  status:{h:"Status",f:statusPill},
+  hp:{h:"High potential",f:r=>r.hp?`<span class="pill p-crit">Yes</span>`:`<span style="color:var(--muted)">–</span>`},
+  pri:{h:"Priority",cls:"num",f:r=>`P${r.pri}`},
+  rca:{h:"RCA",f:r=>r.inv==="FORMAL"?r.rca:"Not required"},
+  ext:{h:"Extension",f:r=>r.inv==="FORMAL"?r.ext:"–"}
+};
+
+function render(){
+  const all=recs.filter(inArea);
+  const per=all.filter(inPeriod);
+  const open=all.filter(r=>r.status==="Open");
+  const by=(arr,t)=>arr.filter(r=>r.type===t);
+  $("#cInc").textContent=by(open,"INC").length+" open";
+  $("#cNm").textContent=by(open,"NM").length+" open";
+  $("#cObs").textContent=by(open,"OBS").length+" open";
+  const t=state.tab;
+  if(t==="overview")renderOverview(all,per,open,by);
+  if(t==="incidents")renderInc(all,per,open,by);
+  if(t==="nearmiss")renderNm(all,per,open,by);
+  if(t==="obs")renderObs(all,per,open,by);
+  if(t==="outlook")renderOutlook(all,per,open,by);
+}
+
+function monthly(arr,filterFn){const keys=monthKeys().map(([y,m])=>{const d=new Date(y,m-1,1);return[d.getFullYear(),d.getMonth()]});return{labels:keys.map(([y,m])=>MONTHS[m]+(m===0?" "+String(y).slice(2):"")),data:keys.map(([y,m])=>arr.filter(r=>r.created.getFullYear()===y&&r.created.getMonth()===m&&(!filterFn||filterFn(r))).length)}}
+
+function renderOverview(all,per,open,by){
+  const od=open.filter(r=>r.overdue>0);
+  const hpOpen=open.filter(r=>r.hp);
+  const closedP=per.filter(r=>r.status==="Closed");
+  const onTime=closedP.filter(r=>r.closeDays<=r.tl).length;
+  const smart=per.filter(r=>r.source!=="Staff report").length;
+  const nm=by(per,"NM").length,inc=by(per,"INC").length;
+  $("#ovKpis").innerHTML=[
+    kpi("Open records",fmt(open.length),`${by(open,"INC").length} incidents · ${by(open,"NM").length} near misses · ${by(open,"OBS").length} obs.`,true),
+    kpi("Overdue",`${pct(od.length,open.length)}%`,`${fmt(od.length)} past their closure timeline`),
+    kpi("High potential open",fmt(hpOpen.length),`${hpOpen.filter(r=>r.overdue>0).length} of them overdue`),
+    kpi("Closed on time",`${pct(onTime,closedP.length)}%`,`of ${fmt(closedP.length)} closed in period`),
+    kpi("Near miss to incident",inc?`${(nm/inc).toFixed(1)} : 1`:"–",`reporting ratio, selected period`),
+    kpi("From smart feeds",`${pct(smart,per.length)}%`,`of records created, after review`)
+  ].join("");
+
+  // alerts
+  const AL=[
+    ["21:12","Gas detectors","H2S 12 ppm, personal detector, cleared in 40 s",`SAS-HCU-K-201`,"Awaiting review","p-warn","Near miss draft"],
+    ["20:47","CCTV vision","Pedestrian within 3 m of reversing tanker",`SAS-MRT-LA-702`,"Acknowledged","p-good","Near miss draft"],
+    ["19:58","Pump sensors","Vibration 9.1 mm/s, rising 3 h",`SAS-CDU-P-102B`,"Escalated","p-crit","PM notification raised"],
+    ["18:31","CCTV vision","Person inside lifting exclusion zone",`SAS-NRU-R-301`,"Acknowledged","p-good","Observation created"],
+    ["16:05","CCTV vision","Emergency exit obstructed by pallets",`SAS-ADM-BLDG-ADM`,"Closed","p-mute","Observation closed"],
+    ["14:22","Gas detectors","Fixed detector offline 22 min",`SAS-SRU-V-410`,"Acknowledged","p-good","Coverage impairment"]
+  ].filter(a=>state.area==="ALL"||a[3].includes("-"+state.area+"-"));
+  $("#alerts").innerHTML=AL.length?AL.map(a=>`<div class="alert"><span class="t">${a[0]}</span><div class="w"><b>${esc(a[2])}</b><span>${a[1]} · <span style="font-family:var(--mono)">${a[3]}</span> · ${a[6]}</span></div><span class="pill ${a[5]}">${a[4]}</span></div>`).join(""):`<p class="hint">No alerts in this area in the last 24 hours.</p>`;
+  const FEEDS=[["CCTV streams",20,18,1,1],["Pump sensors",10,10,0,0],["Gas detectors",10,9,0,1],["Fixed gas (existing)",64,63,1,0]];
+  $("#feeds").innerHTML=FEEDS.map(f=>`<div class="feed"><span>${f[0]}</span><b>${f[2]}<span style="font-size:12px;color:var(--muted);font-weight:500"> / ${f[1]} live</span></b><div class="bar"><span style="width:${f[2]/f[1]*100}%;background:var(--good)"></span>${f[3]?`<span style="width:${f[3]/f[1]*100}%;background:var(--warn)"></span>`:""}${f[4]?`<span style="width:${f[4]/f[1]*100}%;background:var(--crit)"></span>`:""}</div><span>${f[3]?f[3]+" stale ":""}${f[4]?f[4]+" offline":""}${!f[3]&&!f[4]?"All reporting":""}</span></div>`).join("");
+  // pyramid
+  const pi=by(per,"INC");const p45=pi.filter(r=>r.pri>=4).length,p3=pi.filter(r=>r.pri===3).length,p12=pi.filter(r=>r.pri<=2).length;
+  const tiers=[["P4–5",p45,"var(--crit)",30,"#fff"],["P3",p3,"var(--serious)",44,"#1a0d05"],["P1–2 incidents",p12,"var(--s1)",58,"#fff"],["Near misses",nm,"var(--s2)",78,"#1a0d05"],["Safety observations",by(per,"OBS").length,"var(--s3)",100,"#05170f"]];
+  $("#pyramid").innerHTML=tiers.map(t=>`<div style="width:${t[3]}%;background:${t[2]};color:${t[4]}">${t[0]}: ${fmt(t[1])}</div>`).join("");
+
+  const ms=[["chVolInc","INC","--s1"],["chVolNm","NM","--s2"],["chVolObs","OBS","--s3"]];
+  for(const [id,t,c] of ms){const m=monthly(by(all,t));mk(id,{type:"bar",data:{labels:m.labels,datasets:[{label:TYPE_LABEL[t]+"s",data:m.data,backgroundColor:css(c),...BAR}]},options:baseOpts()})}
+
+  // ageing
+  const types=[["INC","Incidents"],["NM","Near misses"],["OBS","Observations"]];
+  const buckets=[["Within timeline","--good"],["Overdue 1–30 d","--warn"],["Overdue 31–90 d","--serious"],["Overdue >90 d","--crit"]];
+  const o=hbarOpts();o.scales.x.stacked=true;o.scales.y.stacked=true;
+  mk("chAgeing",{type:"bar",data:{labels:types.map(t=>t[1]),datasets:buckets.map((b,i)=>({label:b[0],data:types.map(([t])=>by(open,t).filter(r=>ageBucket(r)===i).length),backgroundColor:css(b[1]),borderColor:css("--panel"),borderWidth:{right:2},borderRadius:3,borderSkipped:false,maxBarThickness:34}))},options:o});
+
+  // area heat
+  const cols=["Incidents","Near misses","Observations","Total"];
+  const rows=AREAS.map(a=>{const ov=recs.filter(r=>r.area===a.code&&(state.cat==="ALL"||r.ecat===state.cat)&&r.status==="Open"&&r.overdue>0);return[a,by(ov,"INC").length,by(ov,"NM").length,by(ov,"OBS").length,ov.length]});
+  const mx=[1,2,3,4].map(i=>Math.max(...rows.map(r=>r[i])));
+  const heatColor=(v,m)=>{const s=Math.min(5,Math.ceil(v/m*5));return[`var(--heat${s})`,s>=3?"#fff":"var(--ink)"]};
+  $("#areaHeat").style.gridTemplateColumns="minmax(120px,1.6fr) repeat(4,minmax(64px,1fr))";
+  $("#areaHeat").innerHTML=`<span></span>`+cols.map(c=>`<span class="hh">${c}</span>`).join("")+rows.map(r=>{const sel=state.area==="ALL"||state.area===r[0].code;return `<span class="hl" style="${sel?"":"opacity:.45"}">${r[0].name}</span>`+[1,2,3,4].map(i=>{const [bg,fg]=heatColor(r[i],mx[i-1]);return `<span class="hc" style="background:${bg};color:${fg};${sel?"":"opacity:.45"}" title="${r[0].name}: ${r[i]} overdue ${cols[i-1].toLowerCase()}">${r[i]}</span>`}).join("")}).join("");
+
+  const catRows=CATS.map(c=>{const rs=recs.filter(r=>r.ecat===c.code&&(state.area==="ALL"||r.area===state.area));const p=rs.filter(inPeriod);const op=rs.filter(r=>r.status==="Open");const odd=op.filter(r=>r.overdue>0).length;const sub={};p.filter(r=>r.type==="INC").forEach(r=>sub[r.sub]=(sub[r.sub]||0)+1);const top=Object.entries(sub).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>`${x[0]} ${x[1]}`).join(" · ");return{c,inc:p.filter(r=>r.type==="INC").length,p45:p.filter(r=>r.type==="INC"&&r.pri>=4).length,nm:p.filter(r=>r.type==="NM").length,obs:p.filter(r=>r.type==="OBS").length,open:op.length,odd,top}});
+  document.getElementById("catTable").innerHTML=`<thead><tr><th>Event category</th><th class="num">Incidents</th><th class="num">P4–5</th><th class="num">Near misses</th><th class="num">Observations</th><th class="num">Open</th><th>Overdue</th><th>Top incident sub-categories</th></tr></thead><tbody>`+catRows.map(x=>{const sel=state.cat===x.c.code;const dim=state.cat!=="ALL"&&!sel;const op=pct(x.odd,x.open);return `<tr data-cat="${x.c.code}" style="cursor:pointer;${dim?"opacity:.5;":""}${sel?"background:var(--tint)":""}"><td><b>${esc(x.c.label)}</b></td><td class="num">${x.inc}</td><td class="num">${x.p45?`<span class="pill p-crit">${x.p45}</span>`:"0"}</td><td class="num">${x.nm}</td><td class="num">${fmt(x.obs)}</td><td class="num">${fmt(x.open)}</td><td><span class="pill ${op>=80?"p-crit":op>=50?"p-serious":op>=25?"p-warn":"p-good"}">${x.odd} · ${op}%</span></td><td style="color:var(--ink2)">${x.top||"–"}</td></tr>`}).join("")+`</tbody>`;
+  const tsel=$("#ovType").value;
+  const list=open.filter(r=>tsel==="ALL"||r.type===tsel).sort((a,b)=>b.overdue-a.overdue).slice(0,25);
+  table("ovTable",list,[COL.id,COL.type,COL.ecat,{h:"Detail",f:r=>esc(r.title)},COL.fl,COL.owner,COL.created,COL.due,COL.status,COL.hp]);
+}
+
+function renderInc(all,per,open,by){
+  const pi=by(per,"INC"),oi=by(open,"INC");
+  const formal=pi.filter(r=>r.inv==="FORMAL");
+  const fOpen=oi.filter(r=>r.inv==="FORMAL");
+  const fClosed=formal.filter(r=>r.status==="Closed");
+  const rcaDone=formal.filter(r=>r.rca==="Complete").length;
+  const pend=fOpen.filter(r=>r.ext==="Pending").length,appr=fOpen.filter(r=>r.ext==="Approved").length;
+  const avg=arr=>arr.length?Math.round(arr.reduce((s,r)=>s+r.closeDays,0)/arr.length):0;
+  $("#incKpis").innerHTML=[
+    kpi("Incidents in period",fmt(pi.length),`${formal.length} formal · ${pi.length-formal.length} informal`,true),
+    kpi("Priority 4–5",fmt(pi.filter(r=>r.pri>=4).length),`severe events in period`),
+    kpi("Open incidents",fmt(oi.length),`${oi.filter(r=>r.overdue>0).length} overdue`),
+    kpi("Formal past 45 days",fmt(fOpen.filter(r=>r.overdueOrig>0).length),`against original due date; ${appr} extended, ${pend} pending`),
+    kpi("RCA complete, formal",`${pct(rcaDone,formal.length)}%`,`${rcaDone} of ${formal.length} formal cases`),
+    kpi("Average days to close",`${avg(fClosed)} / ${avg(pi.filter(r=>r.inv==="INFORMAL"&&r.status==="Closed"))}`,`formal / informal`)
+  ].join("");
+  const lab=c=>{const m=c.label.match(/^(.*?)\s*\((.*)\)$/);return m?[m[1],"("+m[2]+")"]:[c.label]};
+  const co=hbarOpts();co.scales.y.ticks.font={size:11};co.plugins.tooltip.callbacks={title:it=>CATS[it[0].dataIndex].label};
+  mk("chIncCat",{type:"bar",data:{labels:CATS.map(lab),datasets:[{label:"Incidents",data:CATS.map(c=>pi.filter(r=>r.ecat===c.code).length),backgroundColor:CATS.map(c=>css(state.cat==="ALL"||state.cat===c.code?"--s1":"--axis")),...BAR}]},options:co});
+  const subs=[];CATS.forEach(c=>{if(c.subs.length>1)c.subs.forEach(s=>subs.push([c,s[0]]))});
+  const sv=subs.map(([c,s])=>pi.filter(r=>r.ecat===c.code&&r.sub===s).length);
+  const so2=hbarOpts();so2.plugins.tooltip.callbacks={title:it=>`${subs[it[0].dataIndex][0].short} · ${subs[it[0].dataIndex][1]}`};
+  mk("chIncSub",{type:"bar",data:{labels:subs.map(([c,s])=>`${c.short} · ${s}`),datasets:[{label:"Incidents",data:sv,backgroundColor:subs.map(([c])=>css(c.code==="EHS"?"--s1":"--s3")),...BAR}]},options:so2});
+  const pc=["--s1","--s1","--serious","--crit","--crit"];
+  mk("chIncPri",{type:"bar",data:{labels:["P1","P2","P3","P4","P5"],datasets:[{label:"Incidents",data:[1,2,3,4,5].map(p=>pi.filter(r=>r.pri===p).length),backgroundColor:[1,2,3,4,5].map(p=>css(p>=4?"--crit":p===3?"--serious":"--s1")),...BAR,maxBarThickness:48}]},options:baseOpts()});
+  const cc=CAUSES.map(c=>[c[0],pi.filter(r=>r.cause===c[0]).length]).sort((a,b)=>b[1]-a[1]);
+  const tot=cc.reduce((s,c)=>s+c[1],0);let cum=0;const cumL=cc.map(c=>{cum+=c[1];return pct(cum,tot)});
+  const o=hbarOpts();o.plugins.tooltip.callbacks={label:ctx=>` ${ctx.raw} incidents · cumulative ${cumL[ctx.dataIndex]}%`};
+  mk("chIncCause",{type:"bar",data:{labels:cc.map((c,i)=>`${c[0]}  (${cumL[i]}%)`),datasets:[{label:"Incidents",data:cc.map(c=>c[1]),backgroundColor:cc.map((c,i)=>css(cumL[i]<=80||i===0?"--s1":"--axis")),...BAR}]},options:o});
+  const fl=fOpen.sort((a,b)=>b.overdueOrig-a.overdueOrig).slice(0,8);
+  $("#formalList").innerHTML=fl.length?fl.map(r=>{const left=-r.overdueOrig;const ext=r.ext==="Approved"?`<span class="pill p-info">Extended to ${dfmt(r.due)}</span>`:r.ext==="Pending"?`<span class="pill p-warn">Extension pending</span>`:"";const clock=left>=0?`<span class="pill p-good">${left} d left</span>`:`<span class="pill p-crit">${-left} d past 45</span>`;return `<div class="li"><div><b style="font-family:var(--mono);font-size:12px">${r.id}</b> · P${r.pri} ${esc(r.cat)} · ${esc(r.sub)}<small>${r.fl} · RCA ${r.rca.toLowerCase()} · ${esc(r.owner)}</small></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">${clock}${ext}</div></div>`}).join(""):`<p class="hint">No open formal investigations in this area.</p>`;
+  table("incTable",oi.sort((a,b)=>b.overdue-a.overdue).slice(0,40),[COL.id,COL.type,COL.pri,COL.ecat,COL.fl,COL.owner,COL.rca,COL.ext,COL.due,COL.status]);
+}
+
+function renderNm(all,per,open,by){
+  const pn=by(per,"NM"),on=by(open,"NM");
+  const smart=pn.filter(r=>r.source!=="Staff report").length;
+  const hp=pn.filter(r=>r.hp).length;
+  const closed=pn.filter(r=>r.status==="Closed");
+  $("#nmKpis").innerHTML=[
+    kpi("Near misses in period",fmt(pn.length),`${(pn.length/state.months).toFixed(0)} per month`,true),
+    kpi("High potential",fmt(hp),`${pct(hp,pn.length)}% of near misses`),
+    kpi("From smart feeds",`${pct(smart,pn.length)}%`,`${smart} detections confirmed by reviewer`),
+    kpi("Open",fmt(on.length),`${on.filter(r=>r.overdue>0).length} past 30-day timeline`),
+    kpi("Closed on time",`${pct(closed.filter(r=>r.closeDays<=r.tl).length,closed.length)}%`,`of ${closed.length} closed`)
+  ].join("");
+  // heat hour x dow
+  const D=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const g=D.map((_,d)=>Array.from({length:24},(_,h)=>pn.filter(r=>r.dow===d&&r.hour===h).length));
+  const mx=Math.max(1,...g.flat());
+  const el=$("#nmHeat");el.style.gridTemplateColumns="34px repeat(24,minmax(18px,1fr))";el.style.minWidth="560px";
+  el.innerHTML=`<span></span>`+Array.from({length:24},(_,h)=>`<span class="hh">${h%3===0?String(h).padStart(2,"0"):""}</span>`).join("")+g.map((row,d)=>`<span class="hl">${D[d]}</span>`+row.map((v,h)=>{const s=Math.min(5,Math.ceil(v/mx*5));return `<span class="hc" style="min-height:22px;background:var(--heat${s})" title="${D[d]} ${String(h).padStart(2,"0")}:00 – ${v} near misses"></span>`}).join("")).join("");
+  const haz={};pn.forEach(r=>haz[r.cat]=(haz[r.cat]||0)+1);const hz=Object.entries(haz).sort((a,b)=>b[1]-a[1]);
+  mk("chNmHaz",{type:"bar",data:{labels:hz.map(h=>h[0]),datasets:[{label:"Near misses",data:hz.map(h=>h[1]),backgroundColor:css("--s2"),...BAR}]},options:hbarOpts()});
+  const SRC=["Staff report","CCTV vision","Gas detectors","Pump sensors","Drone inspection"];
+  const so=hbarOpts();so.plugins.tooltip.callbacks={label:ctx=>` ${ctx.raw} near misses · ${pct(ctx.raw,pn.length)}%`};
+  mk("chNmSrc",{type:"bar",data:{labels:SRC,datasets:[{label:"Near misses",data:SRC.map(s=>pn.filter(r=>r.source===s).length),backgroundColor:SRC.map(s=>css(s==="Staff report"?"--axis":"--s2")),...BAR}]},options:so});
+  // precursors
+  const since=new Date(TODAY.getTime()-90*DAY);const cnt={};
+  recs.filter(r=>inArea(r)&&r.type==="NM"&&r.created>=since).forEach(r=>{(cnt[r.fl]=cnt[r.fl]||[]).push(r)});
+  const cl=Object.entries(cnt).filter(([,v])=>v.length>=3).map(([fl,v])=>{const inc=recs.filter(r=>r.type==="INC"&&r.fl===fl&&r.created>=since).length;return{fl,v,inc}}).sort((a,b)=>(b.inc-a.inc)||(b.v.length-a.v.length)).slice(0,7);
+  $("#precursors").innerHTML=cl.length?cl.map(c=>{const top={};c.v.forEach(r=>top[r.cat]=(top[r.cat]||0)+1);const t=Object.entries(top).sort((a,b)=>b[1]-a[1])[0][0];return `<div class="li"><div><b style="font-family:var(--mono);font-size:12px">${c.fl}</b><small>${c.v.length} near misses in 90 days · mostly ${esc(t.toLowerCase())}</small></div>${c.inc?`<span class="pill p-crit">${c.inc} incident${c.inc>1?"s":""} followed</span>`:`<span class="pill p-warn">Watch</span>`}</div>`}).join(""):`<p class="hint">No clusters of three or more in the last 90 days.</p>`;
+  table("nmTable",on.sort((a,b)=>b.overdue-a.overdue).slice(0,40),[COL.id,COL.title,COL.ecat,COL.src,COL.fl,COL.owner,COL.created,COL.due,COL.status,COL.hp]);
+}
+
+function renderObs(all,per,open,by){
+  const po=by(per,"OBS"),oo=by(open,"OBS");
+  const acts=po.filter(r=>r.kind==="Act").length;
+  const closed=po.filter(r=>r.status==="Closed");
+  const smart=po.filter(r=>r.source!=="Staff report").length;
+  $("#obsKpis").innerHTML=[
+    kpi("Observations in period",fmt(po.length),`${fmt(Math.round(po.length/state.months))} per month`,true),
+    kpi("Unsafe acts / conditions",`${pct(acts,po.length)} / ${100-pct(acts,po.length)}%`,`share of observations`),
+    kpi("Open",fmt(oo.length),`${pct(oo.filter(r=>r.overdue>0).length,oo.length)}% past 14-day timeline`),
+    kpi("Open over 90 days overdue",fmt(oo.filter(r=>r.overdue>90).length),`candidates for custodian review`),
+    kpi("From smart feeds",`${pct(smart,po.length)}%`,`camera, gas, pump and drone findings`),
+    kpi("Closed on time",`${pct(closed.filter(r=>r.closeDays<=r.tl).length,closed.length)}%`,`of ${fmt(closed.length)} closed`)
+  ].join("");
+  const mc=monthly(po.length?by(all,"OBS"):[],r=>r.kind==="Condition"),ma=monthly(by(all,"OBS"),r=>r.kind==="Act");
+  const lo=baseOpts();lo.interaction={mode:"index",intersect:false};
+  const line=(l,d,c)=>({label:l,data:d,borderColor:css(c),backgroundColor:css(c),borderWidth:2,pointRadius:0,pointHoverRadius:5,tension:.25});
+  mk("chObsTrend",{type:"line",data:{labels:mc.labels,datasets:[line("Unsafe conditions",mc.data,"--s1"),line("Unsafe acts",ma.data,"--s2")]},options:lo});
+  const cats=OBS_CAT.map(c=>[c[0],po.filter(r=>r.cat===c[0]).length,c[2]]).sort((a,b)=>b[1]-a[1]);
+  const co=hbarOpts();co.plugins.tooltip.callbacks={label:ctx=>` ${ctx.raw} · unsafe ${cats[ctx.dataIndex][2].toLowerCase()}`};
+  mk("chObsCat",{type:"bar",data:{labels:cats.map(c=>c[0]),datasets:[{label:"Observations",data:cats.map(c=>c[1]),backgroundColor:cats.map(c=>css(c[2]==="Act"?"--s2":"--s1")),...BAR}]},options:co});
+  const fc={};oo.forEach(r=>fc[r.fl]=(fc[r.fl]||0)+1);const ft=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mk("chObsFl",{type:"bar",data:{labels:ft.map(f=>f[0]),datasets:[{label:"Open observations",data:ft.map(f=>f[1]),backgroundColor:css("--s3"),...BAR}]},options:hbarOpts()});
+  const ow={};oo.forEach(r=>{ow[r.owner]=ow[r.owner]||[0,0];ow[r.owner][r.overdue>0?1:0]++});const ot=Object.entries(ow).sort((a,b)=>(b[1][0]+b[1][1])-(a[1][0]+a[1][1])).slice(0,8);
+  const so=hbarOpts();so.scales.x.stacked=true;so.scales.y.stacked=true;
+  mk("chObsOwner",{type:"bar",data:{labels:ot.map(o=>o[0]),datasets:[{label:"Within timeline",data:ot.map(o=>o[1][0]),backgroundColor:css("--good"),borderColor:css("--panel"),borderWidth:{right:2},borderRadius:3,borderSkipped:false,maxBarThickness:24},{label:"Overdue",data:ot.map(o=>o[1][1]),backgroundColor:css("--crit"),borderColor:css("--panel"),borderWidth:{right:2},borderRadius:3,borderSkipped:false,maxBarThickness:24}]},options:so});
+  table("obsTable",oo.sort((a,b)=>b.overdue-a.overdue).slice(0,60),[COL.id,COL.title,{h:"Act / condition",f:r=>r.kind},COL.ecat,COL.src,COL.fl,COL.owner,COL.created,COL.status]);
+}
+
+/* ---------- outlook ---------- */
+const WX=[
+  ["Heat index","43 °C","Peak 13:00–16:00. Threshold 40 °C","p-serious","Heat stress"],
+  ["Wind","32 km/h NW","Gusts 41 km/h from 11:00. Lifting limit 38 km/h","p-warn","High wind lifting"],
+  ["Visibility","3.5 km","Dust advisory after 15:00. Threshold 2 km","p-warn","Low visibility"],
+  ["Humidity","68%","Overnight 82%, condensation on walkways","p-mute","Below threshold"],
+  ["Rain","0 mm","No rain expected","p-good","Clear"]
+];
+const PLAN={CDU:[14,1,"Pump P-102B vibration trend"],HCU:[22,1,"Compressor K-201 maintenance window"],NRU:[9,1,"Catalyst handling"],SRU:[6,0,""],UTL:[11,1,"Cooling tower CT-520 cleaning"],TKF:[18,1,"TK-612 cleaning, confined space"],MRT:[7,1,"Two vessel berthings"],ADM:[3,0,"Contractor bus peak 05:30–06:30"]};
+const decisions={};
+function areaScore(a){
+  const s30=new Date(TODAY.getTime()-30*DAY);
+  const r=recs.filter(x=>x.area===a.code);
+  const nm=r.filter(x=>x.type==="NM"&&x.created>=s30).length;
+  const obs=r.filter(x=>x.type==="OBS"&&x.created>=s30).length;
+  const hpo=r.filter(x=>x.status==="Open"&&x.hp&&x.overdue>0).length;
+  const od=r.filter(x=>x.status==="Open"&&x.overdue>0).length;
+  const [hot,lift]=PLAN[a.code];
+  const outdoor=a.code==="ADM"?.4:1;
+  const base=nm*1.4+obs*.18+hpo*2.2+od*.03+hot*.45+(lift?3:0);
+  const wx=(3.2+(lift?2.6:0))*outdoor+(a.code==="ADM"||a.code==="MRT"?3:0);
+  return{a,nm,obs,hpo,od,hot,lift,shift:base*.55+wx*1.6,day:base*.75+wx,week:base,drivers:[]};
+}
+function band(v,lo,hi){return v>=hi?["High","p-crit"]:v>=lo?["Elevated","p-warn"]:["Low","p-good"]}
+function renderOutlook(all,per,open,by){
+  $("#wx").innerHTML=WX.map(w=>`<div class="wxc"><span class="k">${w[0]}</span><span class="v">${w[1]}</span><span class="s">${w[2]}</span><span class="pill ${w[3]}" style="align-self:flex-start">${w[4]}</span></div>`).join("");
+  const sc=AREAS.map(areaScore);
+  const q=k=>{const v=sc.map(s=>s[k]).sort((a,b)=>a-b);return[v[Math.floor(v.length*.45)],v[Math.floor(v.length*.8)]]};
+  const qs={shift:q("shift"),day:q("day"),week:q("week")};
+  sc.forEach(s=>{
+    const d=[];
+    if(s.hpo)d.push(`${s.hpo} overdue high-potential action${s.hpo>1?"s":""}`);
+    d.push(`${s.nm} near misses in 30 d`);
+    if(s.hot)d.push(`${s.hot} hot work permits planned`);
+    if(s.lift)d.push("crane lifts planned, wind near limit");
+    if(s.a.code==="ADM"||s.a.code==="MRT")d.push("dust advisory with vehicle movements");
+    if(PLAN[s.a.code][2])d.push(PLAN[s.a.code][2]);
+    s.drivers=d;
+  });
+  sc.sort((a,b)=>b.day-a.day);
+  const visible=sc.filter(s=>state.area==="ALL"||s.a.code===state.area);
+  const tb=document.getElementById("watch");
+  tb.innerHTML=`<thead><tr><th>Area</th><th>Next shift</th><th>Next 24 h</th><th>Next 7 days</th><th>Contributing drivers</th></tr></thead><tbody>`+visible.map(s=>`<tr><td><b>${s.a.name}</b></td>${["shift","day","week"].map(k=>{const [l,c]=band(s[k],...qs[k]);return `<td><span class="pill band ${c}">${l}</span></td>`}).join("")}<td class="wrap">${s.drivers.map(esc).join(" · ")}</td></tr>`).join("")+`</tbody>`;
+  const RECS=[
+    {area:"HCU",t:"Add a dedicated lift supervisor and hold crane lifts above 38 km/h",why:["Wind gusts 41 km/h","Exclusion-zone breaches ×4 in 30 d","K-201 maintenance window"],src:"Lifting procedure; action that reduced breaches after a 2025 case"},
+    {area:"TKF",t:"Bring forward gas re-test and add standby attendant for TK-612 entry",why:["Confined space entry planned","2 gas alarms cleared without exposure this week"],src:"Confined space entry procedure"},
+    {area:"CDU",t:"Raise PM inspection on P-102B before the next shift and restrict access around seal area",why:["Vibration 9.1 mm/s rising","3 near misses at this location in 90 d"],src:"Pump condition response; manufacturer analytics"},
+    {area:"ADM",t:"Deploy traffic marshal at Gate 2 during 05:30–06:30 bus peak",why:["Dust advisory","Pedestrian–vehicle proximity peaks at handover"],src:"Site traffic management plan"},
+    {area:"UTL",t:"Enforce work–rest cycle and shaded hydration point for CT-520 cleaning crew",why:["Heat index 43 °C","Heat stress observations up this month"],src:"Heat stress management standard"}
+  ].filter(r=>state.area==="ALL"||r.area===state.area);
+  const AN=Object.fromEntries(AREAS.map(a=>[a.code,a.name]));
+  $("#recs").innerHTML=RECS.length?RECS.map((r,i)=>{const k=r.area+i;const d=decisions[r.t];return `<div class="rec"><div class="rt"><b>${esc(r.t)}</b><span class="pill p-info">${AN[r.area]}</span></div><div class="why">${r.why.map(w=>`<span class="pill p-mute">${esc(w)}</span>`).join("")}</div><p>Basis: ${esc(r.src)}. Owner: Area Custodian – ${r.area}.</p><div class="btns" data-rec="${esc(r.t)}">${d?`<span class="pill ${d==="Approved"?"p-good":"p-mute"}">${d} by EHS (demo)</span><button class="btn" data-act="undo">Undo</button>`:`<button class="btn primary" data-act="Approved">Approve</button><button class="btn" data-act="Deferred">Defer</button>`}</div></div>`}).join(""):`<p class="hint">No recommendations for this area at present.</p>`;
+  // late closure risk
+  const cand=open.filter(r=>r.overdue<=0&&r.overdue>-10).map(r=>{const load=recs.filter(x=>x.owner===r.owner&&x.status==="Open").length;const p=Math.min(.95,.25+(r.age/r.tl)*.35+Math.min(load,200)/400+(r.ext==="Pending"?.15:0));return{r,p,load}}).sort((a,b)=>b.p-a.p).slice(0,8);
+  $("#lateRisk").innerHTML=cand.length?cand.map(c=>`<div class="li"><div><b style="font-family:var(--mono);font-size:12px">${c.r.id}</b> · ${TYPE_LABEL[c.r.type]}<small>${esc(c.r.title)} · due ${dfmt(c.r.due)} · ${esc(c.r.owner)} holds ${c.load} open items</small></div><span class="pill ${c.p>=.7?"p-crit":c.p>=.5?"p-warn":"p-mute"}">${Math.round(c.p*100)}% likely late</span></div>`).join(""):`<p class="hint">Nothing due in the next 10 days.</p>`;
+}
+document.getElementById("recs").addEventListener("click",e=>{const b=e.target.closest("button[data-act]");if(!b)return;const t=b.parentElement.dataset.rec;if(b.dataset.act==="undo")delete decisions[t];else decisions[t]=b.dataset.act;render()});
+
+/* ---------- wiring ---------- */
+function setTab(t){
+  state.tab=t;
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
+  ["overview","incidents","nearmiss","obs","outlook"].forEach(id=>document.getElementById("t-"+id).hidden=id!==t);
+  try{localStorage.setItem("sasref-si-tab",t)}catch(e){}
+  render();
+}
+document.getElementById("tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(b){setTab(b.dataset.tab);window.scrollTo({top:0})}});
+fArea.addEventListener("change",()=>{state.area=fArea.value;render()});
+fCat.addEventListener("change",()=>{state.cat=fCat.value;render()});
+document.getElementById("catTable").addEventListener("click",e=>{const tr=e.target.closest("tr[data-cat]");if(!tr)return;state.cat=state.cat===tr.dataset.cat?"ALL":tr.dataset.cat;fCat.value=state.cat;render()});
+$("#fPeriod").addEventListener("change",e=>{state.months=+e.target.value;render()});
+$("#ovType").addEventListener("change",render);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",render);
+new MutationObserver(render).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+function boot(){setTab(state.tab)}
+boot();
+})();
+</script>
+
+</body>
+</html>
