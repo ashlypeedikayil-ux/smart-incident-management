@@ -14,7 +14,7 @@
   --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
   --good-bg:#e7f6e7; --warn-bg:#fff4dc; --serious-bg:#fdeee7; --crit-bg:#fbe7e7;
   --good-ink:#0a6b0a; --warn-ink:#8a5a00; --serious-ink:#a3471f; --crit-ink:#a32626;
-  --heat0:#f3f7ff; --heat1:#cde2fb; --heat2:#86b6ef; --heat3:#3987e5; --heat4:#1c5cab; --heat5:#0d366b;
+  --heat0:#f3f7ff; --heat1:#cde2fb; --heat2:#86b6ef; --heat3:#3987e5; --heat4:#1c5cab; --heat5:#0d366b; --neg:#2a78d6; --pos:#e34948;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --r:14px;
@@ -26,7 +26,7 @@
   --s1:#3987e5; --s2:#d95926; --s3:#199e70;
   --good-bg:#12301a; --warn-bg:#3a2e0e; --serious-bg:#3a2216; --crit-bg:#3d1717;
   --good-ink:#5fd35f; --warn-ink:#ffcd5c; --serious-ink:#f4a483; --crit-ink:#f08585;
-  --heat0:#172036; --heat1:#184f95; --heat2:#256abf; --heat3:#3987e5; --heat4:#86b6ef; --heat5:#cde2fb;
+  --heat0:#172036; --heat1:#184f95; --heat2:#256abf; --heat3:#3987e5; --heat4:#86b6ef; --heat5:#cde2fb; --neg:#3987e5; --pos:#e66767;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0c111c; --panel:#131a29; --tint:#18233d; --line:#2a3960; --hair:#222c42;
@@ -35,7 +35,7 @@
   --s1:#3987e5; --s2:#d95926; --s3:#199e70;
   --good-bg:#12301a; --warn-bg:#3a2e0e; --serious-bg:#3a2216; --crit-bg:#3d1717;
   --good-ink:#5fd35f; --warn-ink:#ffcd5c; --serious-ink:#f4a483; --crit-ink:#f08585;
-  --heat0:#172036; --heat1:#184f95; --heat2:#256abf; --heat3:#3987e5; --heat4:#86b6ef; --heat5:#cde2fb;
+  --heat0:#172036; --heat1:#184f95; --heat2:#256abf; --heat3:#3987e5; --heat4:#86b6ef; --heat5:#cde2fb; --neg:#3987e5; --pos:#e66767;
   color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -136,6 +136,51 @@ td.wrap{white-space:normal;min-width:220px}
 .list{display:flex;flex-direction:column;gap:6px;font-size:12.8px}
 .list .li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--hair);border-radius:8px}
 .list .li small{display:block;color:var(--muted);font-size:11.5px}
+.matches{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px}
+.match{border:1px solid var(--hair);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--panel)}
+.match .mt{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.match .seq{display:flex;flex-direction:column;gap:4px;font-size:12.3px;color:var(--ink2)}
+.match .seq span{display:flex;gap:8px;align-items:center}
+.match .seq i{width:8px;height:8px;border-radius:50%;flex:none}
+.match .stat{font-size:12.5px;color:var(--ink2)}
+.match .stat b{color:var(--ink);font-size:15px}
+.steps{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));gap:8px;overflow-x:auto;padding-bottom:4px}
+.step{border:1px solid var(--hair);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:5px;min-width:0;position:relative}
+.step .no{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.step b{font-size:13px}
+.step p{margin:0;font-size:12px;color:var(--ink2)}
+.step.done{background:var(--good-bg);border-color:transparent}
+.step.now{background:var(--tint);border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.hbar{display:grid;grid-template-columns:minmax(110px,1fr) 2fr auto;gap:8px;align-items:center;font-size:12.5px;margin:6px 0}
+.hbar .tr{height:10px;border-radius:5px;background:var(--grid);position:relative}
+.hbar .tr span{position:absolute;top:0;bottom:0;border-radius:5px}
+.hbar .tr .mid{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--axis);left:50%}
+tr.sel td{background:var(--tint)}
+#alertTable tbody tr{cursor:pointer}
+.chatcard{min-height:640px}
+.asctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:12.5px;color:var(--muted)}
+.asctl label{display:flex;gap:6px;align-items:center}
+.chatlog{flex:1;min-height:340px;max-height:560px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px}
+.msg{max-width:88%;border-radius:12px;padding:10px 12px;font-size:13.3px;line-height:1.5;overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:4px}
+.msg.bot{align-self:flex-start;background:var(--tint);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.bot p{margin:0 0 6px}.msg.bot p:last-child{margin:0}
+.msg.bot ul{margin:4px 0 6px;padding-left:18px}.msg.bot li{margin:2px 0}
+.msg .meta{display:block;margin-top:6px;font-size:11px;color:var(--muted)}
+.msg.think{color:var(--muted);font-style:italic}
+.ref{font-family:var(--mono);font-size:11.8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:0 5px;color:var(--accent);cursor:pointer;white-space:nowrap}
+button.ref{font-weight:600}
+.sugs{display:flex;flex-wrap:wrap;gap:6px}
+.sug{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink2);border-radius:999px;padding:5px 11px;cursor:pointer;text-align:left}
+.sug:hover{background:var(--tint)}
+.chatin{display:flex;gap:8px;align-items:flex-end}
+.chatin textarea{flex:1;min-width:0;font:inherit;font-size:13.5px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 11px;resize:vertical}
+.chatin textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.chk{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;font-size:12.3px;align-items:start;margin:4px 0}
+.chk .why{grid-column:2;color:var(--muted);font-size:11.5px}
+.rfacts{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12.3px;margin:6px 0}
+.rfacts span:nth-child(odd){color:var(--muted)}
 @media (max-width:560px){.wrap{padding-inline:16px}.kpi .val{font-size:24px}.alert{grid-template-columns:1fr auto}.alert .t{grid-column:1/-1}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -162,7 +207,9 @@ td.wrap{white-space:normal;min-width:220px}
     <button role="tab" data-tab="incidents" aria-selected="false">Incidents<span class="count" id="cInc"></span></button>
     <button role="tab" data-tab="nearmiss" aria-selected="false">Near misses<span class="count" id="cNm"></span></button>
     <button role="tab" data-tab="obs" aria-selected="false">Safety observations<span class="count" id="cObs"></span></button>
+    <button role="tab" data-tab="predict" aria-selected="false">Patterns &amp; prediction</button>
     <button role="tab" data-tab="outlook" aria-selected="false">Risk outlook</button>
+    <button role="tab" data-tab="assist" aria-selected="false">Assistant</button>
   </nav>
 </header>
 
@@ -255,6 +302,50 @@ td.wrap{white-space:normal;min-width:220px}
 </section>
 
 <!-- OUTLOOK -->
+<!-- PATTERNS & PREDICTION -->
+<section class="tab" id="t-predict" hidden>
+  <p class="intro">Explainable analytics on the full record history. Correlations show which leading indicators move with incidents. Precursor rules learned from past sequences watch every new record. A transparent likelihood model ranks locations for the next 30 days. Each alert then follows a set sequence of actions until assurance is confirmed. Results are estimates of likelihood, not predictions of a specific event, and EHS decides every action.</p>
+  <div class="kpis" id="pdKpis"></div>
+  <div class="grid">
+    <div class="card c7">
+      <div class="chead"><div><h2>Incident patterns and correlation</h2><p class="hint">Pearson correlation of month-to-month movements within each area, pooled across areas (complete months). Blue means the indicator falls as incidents rise; red means they rise together. Correlation is a signal to investigate, not proof of cause.</p></div><span class="pill p-mute" id="corrN"></span></div>
+      <div class="heatwrap"><div class="heat" id="corrGrid"></div></div>
+      <div class="legend"><span><i style="background:var(--neg)"></i>Negative</span><span><i style="background:var(--heat0);border:1px solid var(--hair)"></i>None</span><span><i style="background:var(--pos)"></i>Positive</span></div>
+    </div>
+    <div class="card c5">
+      <div class="chead"><div><h2>Lead time: do indicators rise before incidents?</h2><p class="hint">Correlation between an indicator in one month and incidents 0 to 3 months later. A strong value at a later month means earlier warning.</p></div></div>
+      <div class="heatwrap"><div class="heat" id="lagGrid"></div></div>
+      <p class="hint" id="lagNote"></p>
+    </div>
+    <div class="card c12">
+      <div class="chead"><div><h2>Predictive detection on new records</h2><p class="hint">Rule learned from history: related near misses and observations building up at one functional location within 30 days (at least one near miss; a near miss counts 1, an observation 0.5, trigger at 2.5). Each live match shows how often the same sequence was followed by an incident in the past.</p></div><span class="pill p-info">Watching every new record</span></div>
+      <div class="tablebox"><table id="ruleTable"></table></div>
+      <div class="matches" id="liveMatches"></div>
+    </div>
+    <div class="card c8">
+      <div class="chead"><div><h2>Predictive alerts, next 30 days</h2><p class="hint">Likelihood that a location records an incident in the next 30 days, from its own history, open actions and conditions. Select a row to see its action sequence.</p></div></div>
+      <div class="tablebox"><table id="alertTable"></table></div>
+    </div>
+    <div class="card c4">
+      <div class="chead"><div><h2>How the model decides</h2><p class="hint">Logistic regression, chosen because every driver can be read. Bars show how much one standard step in each driver changes the odds.</p></div></div>
+      <div id="modelCard"></div>
+    </div>
+    <div class="card c12">
+      <div class="chead"><div><h2>From alert to assurance</h2><p class="hint">The set sequence every alert follows, owned by positions from the HR organisation structure. The loop closes only when the action is shown to work.</p></div><span class="pill p-info" id="pbFor"></span></div>
+      <div class="steps" id="playbook"></div>
+      <p class="hint" id="pbRule"></p>
+    </div>
+    <div class="card c6">
+      <div class="chead"><div><h2>Action assurance funnel</h2><p class="hint">Past precursor alerts, from recommendation to proven effectiveness.</p></div></div>
+      <div class="chart"><canvas id="chFunnel"></canvas></div>
+    </div>
+    <div class="card c6">
+      <div class="chead"><div><h2>Recurrence after closure</h2><p class="hint">Closed incidents followed by another incident of the same category at the same location within 90 days. Repeat locations point to actions that did not hold.</p></div></div>
+      <div class="list" id="recurList"></div>
+    </div>
+  </div>
+</section>
+
 <section class="tab" id="t-outlook" hidden>
   <p class="intro">Predictive and prescriptive outlook. It ranks areas by the likelihood that an incident, near miss or unsafe condition develops over the next shift, day and week, shows the drivers, and suggests preventive actions from approved procedures. It estimates likelihood, not a certain event. EHS approves every action, and the model runs in shadow mode until back-tests pass.</p>
   <div class="grid">
@@ -265,7 +356,39 @@ td.wrap{white-space:normal;min-width:220px}
   </div>
 </section>
 
-<p class="note">All figures on this page are simulated to show the target state described in the SASREF Smart Incident Management proposal; they are not SASREF records. Closure timelines: formal investigation 45 days (from the proposal); informal investigation 30, near miss 30 and safety observation 14 days are placeholders to be confirmed in discovery. Functional locations and positions are illustrative. Event categories follow the SASREF incident form; mapping near misses and observations to a category is an assumption for this demo.</p>
+<!-- ASSISTANT -->
+<section class="tab" id="t-assist" hidden>
+  <p class="intro">Ask questions in plain language about incidents, near misses and observations, patterns and correlations, likely incidents, and whether a record meets the procedures. Every answer cites the record and procedure IDs it used, so you can check it. The assistant only reads data; people decide and act in SAP.</p>
+  <div class="grid">
+    <div class="card c8 chatcard">
+      <div class="chead">
+        <div><h2>SmartSafe Assistant</h2><p class="hint" id="asModeHint">Checking whether generative answers are available…</p></div>
+        <span class="pill p-mute" id="asMode">Starting</span>
+      </div>
+      <div class="asctl">
+        <label for="asRole">I am <select id="asRole"><option value="custodian">Area custodian</option><option value="lead">Investigation lead</option></select></label>
+        <label for="asArea" id="asAreaWrap">for <select id="asArea"></select></label>
+        <button class="btn" id="asClear" type="button">New conversation</button>
+      </div>
+      <div class="chatlog" id="chatlog" aria-live="polite"></div>
+      <div class="sugs" id="sugs"></div>
+      <form class="chatin" id="chatForm">
+        <label for="chatInput" class="sr">Ask a question</label>
+        <textarea id="chatInput" rows="2" placeholder="Ask about incidents, patterns, likely risks or procedure checks. Example: Verify INC-26-0031 against procedures"></textarea>
+        <div class="btns"><button class="btn primary" id="chatSend" type="submit">Ask</button><button class="btn" id="chatStop" type="button" hidden>Stop</button></div>
+      </form>
+    </div>
+    <div class="card c4">
+      <div class="chead"><div><h2>Record and procedure check</h2><p class="hint">Select a record ID in any answer to see its facts and the procedure checklist.</p></div></div>
+      <div id="recPanel"><p class="hint">No record selected yet.</p></div>
+      <h2 style="margin-top:8px">Procedure library</h2>
+      <p class="hint">Sample procedures for this demonstration. In production these are SASREF's controlled documents, indexed in the knowledge base.</p>
+      <div class="list" id="procList"></div>
+    </div>
+  </div>
+</section>
+
+<p class="note">All figures on this page are simulated to show the target state described in the SASREF Smart Incident Management proposal; they are not SASREF records. Closure timelines: formal investigation 45 days (from the proposal); informal investigation 30, near miss 30 and safety observation 14 days are placeholders to be confirmed in discovery. Functional locations and positions are illustrative. Patterns &amp; prediction runs on the same simulated records, with some warning sequences deliberately included to demonstrate detection; real accuracy is established only by back-testing on SASREF history. Event categories follow the SASREF incident form; mapping near misses and observations to a category is an assumption for this demo. The assistant's procedures and evidence fields are samples, not SASREF documents.</p>
 </div>
 
 <script>
@@ -381,6 +504,47 @@ for(let d=364;d>=0;d--){
     }
   }
 }
+/* ---------- precursor sequences: before many incidents, the same location shows related near misses and observations ---------- */
+const PRE_BY_SUB={
+ "LOPC":[["NM","Minor loss of containment"],["NM","Gas alarm cleared, no exposure"],["OBS","Leak or drip"]],
+ "Fire":[["NM","Hot work"],["OBS","Housekeeping"],["OBS","Procedure or permit deviation"]],
+ "Injury":[["NM","Slip, trip or fall"],["NM","Dropped object"],["OBS","PPE"],["OBS","Housekeeping"],["OBS","Scaffold or ladder condition"]],
+ "Illness":[["OBS","Heat stress controls"],["OBS","PPE"]],
+ "Environment":[["OBS","Leak or drip"],["NM","Minor loss of containment"]],
+ "RV/IPF":[["NM","Gas alarm cleared, no exposure"],["OBS","Procedure or permit deviation"]],
+ "Asset failure":[["NM","Abnormal pump trend corrected"],["OBS","Leak or drip"],["NM","Defect found before failure"]],
+ "Trip":[["NM","Abnormal pump trend corrected"],["OBS","Procedure or permit deviation"]],
+ "Shutdown":[["NM","Abnormal pump trend corrected"],["OBS","Procedure or permit deviation"]],
+ "Off-spec product":[["OBS","Procedure or permit deviation"]],
+ "Road traffic, no injury":[["NM","Vehicle–pedestrian proximity"],["OBS","Blocked access or exit"]],
+ "Security":[["OBS","Restricted zone entry"],["OBS","Lighting or signage"]]
+};
+const SRC_FOR_TITLE=t=>/pump/.test(t)?"Pump sensors":/Gas alarm/.test(t)?"Gas detectors":/Defect/.test(t)?"Drone inspection":/Vehicle|Restricted zone/.test(t)&&R()<.6?"CCTV vision":"Staff report";
+function addRec(type,created,ref,title){
+  if(created>TODAY||created<new Date(TODAY.getTime()-364*DAY))return null;
+  const area=AREAS.find(a=>a.code===ref.area);const hour=created.getHours();
+  const r={type,area:area.code,areaName:area.name,fl:ref.fl,created,hour,dow:(created.getDay()+6)%7,shift:(hour>=6&&hour<18)?"Day":"Night",source:SRC_FOR_TITLE(title),cat:title,title,ecat:ref.ecat,sub:ref.sub,pre:true};
+  if(type==="OBS"){const c=OBS_CAT.find(x=>x[0]===title);r.kind=c?c[2]:"Condition";r.hp=R()<.05}else r.hp=/containment|Gas|Dropped/.test(title)?R()<.35:R()<.1;
+  r.tl=TIMELINE[type];r.due=new Date(created.getTime()+r.tl*DAY);r.dueOrig=r.due;
+  r.owner=(type==="NM"?"Area Custodian":pick(["Area Custodian","Shift Supervisor"]))+" – "+area.code;
+  const dur=R()<STUCK[type]?Infinity:r.tl*(0.3+Math.pow(R(),1.3)*1.35);const age=(TODAY-created)/DAY;
+  if(dur<=age){r.status="Closed";r.closed=new Date(created.getTime()+dur*DAY);r.closeDays=dur}else r.status="Open";
+  recs.push(r);return r;
+}
+recs.filter(r=>r.type==="INC").forEach(inc=>{
+  if(R()>(inc.pri>=3?.9:.7))return;
+  const k=2+Math.floor(R()*3);const opts=PRE_BY_SUB[inc.sub]||[["OBS","Housekeeping"]];
+  for(let j=0;j<k;j++){const [t,title]=pick(opts);const lead=3+Math.pow(R(),.9)*32;addRec(t,new Date(inc.created.getTime()-lead*DAY-R()*8*36e5),inc,title)}
+});
+/* a few live sequences in the last weeks with no incident yet: what the detector is for */
+[["HCU","K-201","EHS","LOPC",[["NM","Gas alarm cleared, no exposure",19],["OBS","Leak or drip",11],["NM","Minor loss of containment",3]]],
+ ["CDU","P-102B","IR","Asset failure",[["NM","Abnormal pump trend corrected",16],["OBS","Leak or drip",9],["NM","Abnormal pump trend corrected",2]]],
+ ["MRT","LA-702","RTA","Road traffic, no injury",[["NM","Vehicle–pedestrian proximity",12],["NM","Vehicle–pedestrian proximity",4]]],
+ ["TKF","TK-612","EHS","Fire",[["NM","Hot work",13],["OBS","Procedure or permit deviation",8],["NM","Hot work",2]]],
+ ["UTL","CT-520","EHS","Illness",[["OBS","Heat stress controls",14],["OBS","Heat stress controls",9],["NM","Slip, trip or fall",4],["OBS","Heat stress controls",1]]]
+].forEach(([a,tag,ecat,sub,list])=>list.forEach(([t,title,daysAgo])=>addRec(t,new Date(TODAY.getTime()-daysAgo*DAY-3*36e5),{area:a,fl:`SAS-${a}-${tag}`,ecat,sub},title)));
+recs.sort((a,b)=>a.created-b.created);
+{const c={INC:0,NM:0,OBS:0};recs.forEach(r=>{c[r.type]++;r.id=`${r.type}-26-${String(c[r.type]).padStart(r.type==="OBS"?5:4,"0")}`})}
 recs.forEach(r=>{r.overdue=r.status==="Open"?Math.floor((TODAY-r.due)/DAY):null;r.overdueOrig=r.status==="Open"?Math.floor((TODAY-r.dueOrig)/DAY):null;r.age=Math.floor((TODAY-r.created)/DAY)});
 
 /* ---------- helpers ---------- */
@@ -404,7 +568,7 @@ function ageBucket(r){const o=r.overdue;return o<=0?0:o<=30?1:o<=90?2:3}
 
 let state={area:"ALL",cat:"ALL",months:12,tab:"overview"};
 try{const t=localStorage.getItem("sasref-si-tab");if(t)state.tab=t}catch(e){}
-if(location.hash&&/^#(overview|incidents|nearmiss|obs|outlook)$/.test(location.hash))state.tab=location.hash.slice(1);
+if(location.hash&&/^#(overview|incidents|nearmiss|obs|predict|outlook|assist)$/.test(location.hash))state.tab=location.hash.slice(1);
 
 const fArea=$("#fArea");
 fArea.innerHTML=`<option value="ALL">All areas</option>`+AREAS.map(a=>`<option value="${a.code}">${a.name}</option>`).join("");
@@ -538,6 +702,7 @@ function render(){
   if(t==="nearmiss")renderNm(all,per,open,by);
   if(t==="obs")renderObs(all,per,open,by);
   if(t==="outlook")renderOutlook(all,per,open,by);
+  if(t==="predict")renderPred(all,per,open,by);
 }
 
 function monthly(arr,filterFn){const keys=monthKeys().map(([y,m])=>{const d=new Date(y,m-1,1);return[d.getFullYear(),d.getMonth()]});return{labels:keys.map(([y,m])=>MONTHS[m]+(m===0?" "+String(y).slice(2):"")),data:keys.map(([y,m])=>arr.filter(r=>r.created.getFullYear()===y&&r.created.getMonth()===m&&(!filterFn||filterFn(r))).length)}}
@@ -750,17 +915,307 @@ function renderOutlook(all,per,open,by){
 }
 document.getElementById("recs").addEventListener("click",e=>{const b=e.target.closest("button[data-act]");if(!b)return;const t=b.parentElement.dataset.rec;if(b.dataset.act==="undo")delete decisions[t];else decisions[t]=b.dataset.act;render()});
 
+/* ---------- patterns and prediction ---------- */
+const HEAT_IDX=[22,24,28,34,40,45,48,49,45,39,31,25];
+const HOT_BASE={CDU:60,HCU:70,NRU:45,SRU:30,UTL:40,TKF:55,MRT:25,ADM:8};
+const PM_BASE={CDU:120,HCU:140,NRU:90,SRU:70,UTL:110,TKF:80,MRT:50,ADM:20};
+const hrand=i=>{const x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)};
+function pearson(x,y){const n=x.length;if(n<3)return 0;const mx=x.reduce((a,b)=>a+b,0)/n,my=y.reduce((a,b)=>a+b,0)/n;let sxy=0,sx=0,sy=0;for(let i=0;i<n;i++){const a=x[i]-mx,b=y[i]-my;sxy+=a*b;sx+=a*a;sy+=b*b}return sx&&sy?sxy/Math.sqrt(sx*sy):0}
+function fullMonths(k){const out=[];for(let i=k;i>=1;i--){const s=new Date(TODAY.getFullYear(),TODAY.getMonth()-i,1);out.push([s,new Date(s.getFullYear(),s.getMonth()+1,1)])}return out}
+const catOK=r=>state.cat==="ALL"||r.ecat===state.cat;
+const areaOK=r=>state.area==="ALL"||r.area===state.area;
+const hpodAt=(arr,T)=>arr.filter(r=>r.hp&&r.created<=T&&r.dueOrig<T&&(r.status==="Open"||r.closed>T)).length;
+function areaMonthFeatures(){
+  const months=fullMonths(11);const rows=[];
+  AREAS.filter(a=>state.area==="ALL"||a.code===state.area).forEach((a,ai)=>{const ar=recs.filter(r=>r.area===a.code&&catOK(r));
+    months.forEach(([s,e],mi)=>{const inM=ar.filter(r=>r.created>=s&&r.created<e);const m=s.getMonth();const season=(m>=5&&m<=8)?1.25:1;
+      rows.push({area:a.code,mi,nm:inM.filter(r=>r.type==="NM").length,obs:inM.filter(r=>r.type==="OBS").length,inc:inM.filter(r=>r.type==="INC").length,
+        hpod:hpodAt(ar,e),hot:Math.round(HOT_BASE[a.code]*season*(0.75+0.5*hrand(ai*31+mi))),pm:Math.round(PM_BASE[a.code]*(0.85+0.3*hrand(ai*17+mi*7+3))+mi*2),heat:HEAT_IDX[m]})})});
+  return rows;
+}
+const SHORT={nm:"Near misses",obs:"Observations",hpod:"Overdue HP actions",hot:"Hot work permits",pm:"PM backlog",heat:"Heat index",inc:"Incidents"};
+const IND=[["nm","Near misses"],["obs","Safety observations"],["hpod","Overdue high-potential actions"],["hot","Hot work permits"],["pm","PM backlog"],["heat","Heat index"],["inc","Incidents"]];
+function divColor(v){const a=Math.min(1,Math.abs(v)/0.8);return v>=0?`color-mix(in srgb, var(--pos) ${Math.round(a*85)}%, var(--heat0))`:`color-mix(in srgb, var(--neg) ${Math.round(a*85)}%, var(--heat0))`}
+
+/* precursor rule evaluation */
+const W=30,H=45;
+function patternEngine(){
+  const groups={};
+  recs.filter(r=>areaOK(r)&&catOK(r)).forEach(r=>{const k=r.fl+"|"+r.sub;(groups[k]=groups[k]||{fl:r.fl,area:r.area,ecat:r.ecat,sub:r.sub,pre:[],inc:[]});(r.type==="INC"?groups[k].inc:groups[k].pre).push(r)});
+  const start=new Date(TODAY.getTime()-364*DAY);const evalEnd=new Date(TODAY.getTime()-H*DAY);
+  const trig=[],live=[];let baseY=0,baseN=0;
+  Object.values(groups).forEach(g=>{g.pre.sort((a,b)=>a.created-b.created);g.inc.sort((a,b)=>a.created-b.created);let last=null;
+    g.pre.forEach((p,i)=>{const t=p.created;const win=g.pre.filter(q=>q.created<=t&&q.created>new Date(t-W*DAY));const score=win.reduce((a,q)=>a+(q.type==="NM"?1:0.5),0);
+      if(score>=2.5&&win.some(q=>q.type==="NM")&&(!last||t-last>W*DAY)){last=t;const next=g.inc.find(x=>x.created>t);const lead=next?(next.created-t)/DAY:null;
+        if(t<=evalEnd)trig.push({g,t,hit:lead!==null&&lead<=H,lead});
+        else if(t>new Date(TODAY.getTime()-30*DAY)&&!(lead!==null&&next.created<=TODAY))live.push({g,t,seq:win,sub:g.sub})}});
+    for(let d=new Date(start.getTime()+W*DAY);d<=evalEnd;d=new Date(d.getTime()+7*DAY)){baseN++;if(g.inc.some(x=>x.created>d&&x.created<=new Date(d.getTime()+H*DAY)))baseY++}
+  });
+  const base=baseN?baseY/baseN:0;
+  const byCat=CATS.map(c=>{const t=trig.filter(x=>x.g.ecat===c.code);const hits=t.filter(x=>x.hit);const leads=hits.map(x=>x.lead).sort((a,b)=>a-b);
+    const gb=Object.values(groups).filter(g=>g.ecat===c.code);return{c,n:t.length,hit:hits.length,rate:t.length?hits.length/t.length:0,lead:leads.length?leads[Math.floor(leads.length/2)]:null}});
+  const all={n:trig.length,hit:trig.filter(x=>x.hit).length};all.rate=all.n?all.hit/all.n:0;
+  const leadsAll=trig.filter(x=>x.hit).map(x=>x.lead).sort((a,b)=>a-b);all.lead=leadsAll.length?leadsAll[Math.floor(leadsAll.length/2)]:null;
+  return{byCat,all,base,live:live.sort((a,b)=>b.t-a.t)};
+}
+
+/* explainable likelihood model */
+const FEAT=[["nm30","Near misses, last 30 days"],["obs30","Observations, last 30 days"],["pre90","Related near misses and observations, 90 days"],["hpod","Overdue high-potential actions"],["inc180","Incidents, last 180 days"],["heat","Heat index for the month"]];
+let MODEL=null;
+function flFeatures(fl,area,T,byFl){const rs=byFl[fl]||[];const t30=new Date(T-30*DAY),t90=new Date(T-90*DAY),t180=new Date(T-180*DAY);const m=T.getMonth();const ai=AREAS.findIndex(a=>a.code===area);
+  return{nm30:rs.filter(r=>r.type==="NM"&&r.created>=t30&&r.created<T).length,obs30:rs.filter(r=>r.type==="OBS"&&r.created>=t30&&r.created<T).length,
+    pre90:rs.filter(r=>r.type!=="INC"&&r.created>=t90&&r.created<T).length,hpod:hpodAt(rs,T),inc180:rs.filter(r=>r.type==="INC"&&r.created>=t180&&r.created<T).length,
+    heat:HEAT_IDX[m],hot:Math.round(HOT_BASE[area]*((m>=5&&m<=8)?1.25:1)*(0.75+0.5*hrand(ai*31+m)))}}
+function fitModel(){
+  const byFl={};recs.forEach(r=>{(byFl[r.fl]=byFl[r.fl]||[]).push(r)});
+  const fls=Object.keys(byFl).map(fl=>({fl,area:byFl[fl][0].area}));
+  const S=[];const H30=30*DAY;
+  for(let T=new Date(TODAY.getTime()-270*DAY);T<=new Date(TODAY.getTime()-30*DAY);T=new Date(T.getTime()+15*DAY)){const test=T>new Date(TODAY.getTime()-110*DAY);
+    fls.forEach(f=>{const x=flFeatures(f.fl,f.area,T,byFl);const y=byFl[f.fl].some(r=>r.type==="INC"&&r.created>=T&&r.created<new Date(T.getTime()+H30))?1:0;S.push({x,y,test})})}
+  const keys=FEAT.map(f=>f[0]);const mu={},sd={};keys.forEach(k=>{const v=S.map(s=>s.x[k]);mu[k]=v.reduce((a,b)=>a+b,0)/v.length;sd[k]=Math.sqrt(v.reduce((a,b)=>a+(b-mu[k])**2,0)/v.length)||1});
+  const Z=s=>keys.map(k=>(s.x[k]-mu[k])/sd[k]);
+  function train(set){let w=keys.map(()=>0),b=0;const lr=0.15,l2=0.02;for(let it=0;it<700;it++){const gw=w.map(()=>0);let gb=0;set.forEach(s=>{const z=Z(s);const p=1/(1+Math.exp(-(b+z.reduce((a,v,i)=>a+v*w[i],0))));const e=p-s.y;gb+=e;z.forEach((v,i)=>gw[i]+=e*v)});w=w.map((v,i)=>v-lr*(gw[i]/set.length+l2*v));b-=lr*gb/set.length}return{w,b}}
+  const prob=(m,s)=>1/(1+Math.exp(-(m.b+Z(s).reduce((a,v,i)=>a+v*m.w[i],0))));
+  const tr=S.filter(s=>!s.test),te=S.filter(s=>s.test);const m1=train(tr);
+  const sc=te.map(s=>({p:prob(m1,s),y:s.y}));const pos=sc.filter(s=>s.y),neg=sc.filter(s=>!s.y);let c=0;pos.forEach(a=>neg.forEach(b=>{c+=a.p>b.p?1:a.p===b.p?.5:0}));const auc=pos.length&&neg.length?c/(pos.length*neg.length):0.5;
+  const m=train(S);const base=S.filter(s=>s.y).length/S.length;
+  const now=fls.map(f=>{const x=flFeatures(f.fl,f.area,TODAY,byFl);const s={x};const z=Z(s);const contrib=keys.map((k,i)=>({k,label:FEAT[i][1],v:z[i]*m.w[i],raw:x[k]}));return{...f,x,p:prob(m,s),contrib:contrib.sort((a,b)=>b.v-a.v)}});
+  MODEL={keys,w:m.w,auc,base,n:S.length,ntest:te.length,now:now.sort((a,b)=>b.p-a.p)};
+}
+
+/* playbook */
+const PB_ACTION={"LOPC":"Leak survey and seal inspection; PM notification for gasket or seal","Fire":"Hot work permit audit and fire-watch check","Injury":"Housekeeping and PPE walk; refresh job hazard analysis","Illness":"Enforce work–rest cycle; shaded hydration point","Environment":"Drain and bund inspection","RV/IPF":"Check relief valve and trip test records","Asset failure":"Vibration analysis and PM inspection of the asset","Trip":"Review alarm and trip settings with operations","Shutdown":"Pre-start-up review checklist","Off-spec product":"Sampling and blending procedure check","Road traffic, no injury":"Traffic marshal and speed check at the location","Security":"Access control and lighting check"};
+let pbSel=null;
+function playbookFor(sel){
+  const area=sel.area,fl=sel.fl,sub=sel.sub||"Injury";const h=Math.floor(hrand(fl.length*7+fl.charCodeAt(fl.length-1))*4)+1;const stage=Math.min(5,h);
+  const d0=sel.t||new Date(TODAY.getTime()-3*DAY);const dd=n=>dfmt(new Date(d0.getTime()+n*DAY));
+  const S=[
+   ["Detect","System",`Signal raised for ${fl}`,dd(0)],
+   ["Validate","EHS Engineer – "+area,"Confirm the signal and coverage; reject if it is noise",dd(1)],
+   ["Approve action","Area Custodian – "+area,PB_ACTION[sub]||"Preventive inspection at the location",dd(2)],
+   ["Assign and execute","Maintenance Planner – "+area,"PM notification or work order against the same functional location",dd(7)],
+   ["Verify completion","Area Custodian – "+area,"Evidence attached in SAP; action closed",dd(14)],
+   ["Check effectiveness","EHS Engineer – "+area,"No related near miss or observation at the location for 30 days",dd(44)],
+   ["Assure and learn","EHS Manager","No incident for 90 days; lesson shared; rule and model updated",dd(104)]];
+  return S.map((s,i)=>({no:i+1,name:s[0],owner:s[1],what:s[2],due:s[3],st:i<stage?"done":i===stage?"now":"todo"}));
+}
+
+function renderPred(all,per,open,by){
+  if(!MODEL)fitModel();
+  const PE=patternEngine();
+  const rateOf=e=>{const x=PE.byCat.find(b=>b.c.code===e);return x&&x.n?x:PE.all};
+  const LIVE=PE.live.filter(m=>{const st=rateOf(m.g.ecat);return PE.base&&st.rate/PE.base>=1.5}).sort((a,b)=>rateOf(b.g.ecat).rate-rateOf(a.g.ecat).rate||b.t-a.t);
+  const alerts=MODEL.now.filter(a=>state.area==="ALL"||a.area===state.area);
+  const hi=alerts.filter(a=>a.p>=MODEL.base*2);
+  const closedInc=recs.filter(r=>r.type==="INC"&&r.status==="Closed"&&areaOK(r)&&catOK(r)&&(TODAY-r.closed)/DAY>=90);
+  const recur=closedInc.filter(r=>recs.some(x=>x.type==="INC"&&x!==r&&x.fl===r.fl&&x.ecat===r.ecat&&x.created>r.closed&&(x.created-r.closed)/DAY<=90));
+  const N=PE.all.n,fun=[["Alerts raised",N],["Validated by EHS",Math.round(N*.86)],["Action approved",Math.round(N*.8)],["Action completed",Math.round(N*.71)],["Verified effective",Math.round(N*.6)],["No recurrence in 90 days",Math.round(N*.54)]];
+  $("#pdKpis").innerHTML=[
+    kpi("Live pattern matches",fmt(LIVE.length),"high-lift precursor sequences, no incident yet",true),
+    kpi("High-likelihood locations",fmt(hi.length),"at least twice the site rate, next 30 days"),
+    kpi("Rule hit rate",`${Math.round(PE.all.rate*100)}%`,`vs ${Math.round(PE.base*100)}% baseline · ${PE.base?(PE.all.rate/PE.base).toFixed(1):"–"}× lift`),
+    kpi("Model back-test",MODEL.auc.toFixed(2),`AUC on ${MODEL.ntest} held-out location windows`),
+    kpi("Verified effective",`${pct(fun[4][1],fun[3][1])}%`,"of completed preventive actions"),
+    kpi("Recurrence after closure",`${pct(recur.length,closedInc.length)}%`,`${recur.length} of ${closedInc.length} closed incidents`)
+  ].join("");
+  // correlation
+  const rows=areaMonthFeatures();
+  const zs={};IND.forEach(([k])=>{zs[k]=[];[...new Set(rows.map(r=>r.area))].forEach(a=>{const v=rows.filter(r=>r.area===a).map(r=>r[k]);const m=v.reduce((x,y)=>x+y,0)/v.length;const sd=Math.sqrt(v.reduce((x,y)=>x+(y-m)**2,0)/v.length)||1;v.forEach(x=>zs[k].push((x-m)/sd))})});
+  const V=k=>zs[k];
+  $("#corrN").textContent=`n = ${rows.length} area-months`;
+  const cg=$("#corrGrid");cg.style.gridTemplateColumns=`minmax(130px,1.4fr) repeat(${IND.length},minmax(52px,1fr))`;cg.style.minWidth="600px";
+  cg.innerHTML=`<span></span>`+IND.map(i=>`<span class="hh" title="${i[1]}">${SHORT[i[0]]}</span>`).join("")+IND.map(a=>`<span class="hl" title="${a[1]}">${SHORT[a[0]]}</span>`+IND.map(b=>{const v=a[0]===b[0]?0:pearson(V(a[0]),V(b[0]));return `<span class="hc" style="background:${a[0]===b[0]?"var(--grid)":divColor(v)};color:${Math.abs(v)>.45?"#fff":"var(--ink)"}" title="${a[1]} vs ${b[1]}: r = ${v.toFixed(2)}">${a[0]===b[0]?"–":v.toFixed(2)}</span>`}).join("")).join("");
+  // lag
+  const lagInd=IND.filter(i=>i[0]!=="inc");const lg=$("#lagGrid");lg.style.gridTemplateColumns="minmax(150px,1.6fr) repeat(4,minmax(54px,1fr))";
+  const lagV=(k,L)=>{const x=[],y=[];const areas=[...new Set(rows.map(r=>r.area))];areas.forEach(a=>{const rr=rows.filter(r=>r.area===a);for(let i=0;i+L<rr.length;i++){x.push(rr[i][k]);y.push(rr[i+L].inc)}});return pearson(x,y)};
+  let best={v:-1};
+  lg.innerHTML=`<span></span>`+[0,1,2,3].map(L=>`<span class="hh">${L===0?"Same month":"+"+L+" mo"}</span>`).join("")+lagInd.map(i=>`<span class="hl" title="${i[1]}">${SHORT[i[0]]}</span>`+[0,1,2,3].map(L=>{const v=lagV(i[0],L);if(L>0&&v>best.v)best={v,i:i[1],L};return `<span class="hc" style="background:${divColor(v)};color:${Math.abs(v)>.45?"#fff":"var(--ink)"}" title="${i[1]} → incidents ${L} month(s) later: r = ${v.toFixed(2)}">${v.toFixed(2)}</span>`}).join("")).join("");
+  $("#lagNote").textContent=best.v>0?`Strongest early signal: ${best.i.toLowerCase()}, ${best.L} month${best.L>1?"s":""} ahead (r = ${best.v.toFixed(2)}).`:"No indicator leads incidents in this selection.";
+  // rules
+  document.getElementById("ruleTable").innerHTML=`<thead><tr><th>Event category</th><th class="num">Past matches</th><th class="num">Followed by incident</th><th class="num">Baseline</th><th class="num">Lift</th><th class="num">Typical lead time</th></tr></thead><tbody>`+
+    PE.byCat.filter(x=>x.n).map(x=>`<tr><td><b>${esc(x.c.short)}</b> <span style="color:var(--ink2)">${esc(x.c.label.replace(/^[^(]*\(?/,"").replace(/\)$/,""))}</span></td><td class="num">${x.n}${x.n<10?' <span class="pill p-mute">small sample</span>':''}</td><td class="num">${Math.round(x.rate*100)}%</td><td class="num">${Math.round(PE.base*100)}%</td><td class="num"><span class="pill ${PE.base&&x.rate/PE.base>=3?"p-crit":PE.base&&x.rate/PE.base>=1.8?"p-warn":"p-mute"}">${PE.base?(x.rate/PE.base).toFixed(1):"–"}×</span></td><td class="num">${x.lead!==null?Math.round(x.lead)+" days":"–"}</td></tr>`).join("")+`</tbody>`;
+    $("#liveMatches").innerHTML=LIVE.slice(0,6).map((m,i)=>{const st=rateOf(m.g.ecat);const ago=Math.round((TODAY-m.t)/DAY);const win=st.lead?Math.max(5,Math.round(st.lead-ago)):30;
+    return `<div class="match"><div class="mt"><div><b style="font-family:var(--mono);font-size:12.5px">${m.g.fl}</b><div style="font-size:12px;color:var(--ink2)">${esc(CATMAP[m.g.ecat].short)} · ${esc(m.sub||"")}</div></div><span class="pill ${st.rate>=.4?"p-crit":st.rate>=.25?"p-warn":"p-mute"}">${Math.round(st.rate*100)}% historically</span></div>
+    <div class="seq">${m.seq.slice(-3).map(q=>`<span><i style="background:var(${q.type==="NM"?"--s2":"--s3"})"></i>${q.id} · ${esc(q.title)} · ${Math.round((TODAY-q.created)/DAY)} d ago</span>`).join("")}</div>
+    <div class="stat">Same sequence was followed by an incident in <b>${st.hit} of ${st.n}</b> past cases${st.lead?`, typically within ${Math.round(st.lead)} days`:""}. Watch window: next ${win} days.</div>
+    <div class="btns"><button class="btn" data-pb="${i}">Show action sequence</button></div></div>`}).join("")||`<p class="hint">No live precursor sequences in this selection.</p>`;
+  // alerts
+  const top=alerts.slice(0,10);
+  if(!pbSel){const m=LIVE[0];pbSel=m?{fl:m.g.fl,area:m.g.area,sub:m.sub,t:m.t,label:"Pattern match"}:{fl:top[0].fl,area:top[0].area,sub:null,label:"Predictive alert"}}
+  document.getElementById("alertTable").innerHTML=`<thead><tr><th>Functional location</th><th>Area</th><th class="num">Likelihood</th><th>vs site rate</th><th>Main drivers</th></tr></thead><tbody>`+top.map((a,i)=>{const r=a.p/MODEL.base;
+    return `<tr data-al="${i}" class="${pbSel&&pbSel.fl===a.fl?"sel":""}"><td class="mono">${a.fl}</td><td>${esc(AREAS.find(x=>x.code===a.area).name)}</td><td class="num"><b>${Math.round(a.p*100)}%</b></td><td><span class="pill ${r>=2?"p-crit":r>=1.3?"p-warn":"p-good"}">${r.toFixed(1)}×</span></td><td class="wrap">${a.contrib.slice(0,2).filter(c=>c.v>0).map(c=>`${esc(c.label)} (${c.raw})`).join(" · ")||"No strong driver"}</td></tr>`}).join("")+`</tbody>`;
+  top.forEach((a,i)=>{const tr=document.querySelector(`#alertTable tr[data-al="${i}"]`);tr.onclick=()=>{const lm=PE.live.find(m=>m.g.fl===a.fl);pbSel={fl:a.fl,area:a.area,sub:lm?lm.sub:(recs.filter(r=>r.fl===a.fl&&r.type==="INC").slice(-1)[0]||{}).sub,label:"Predictive alert",t:null};render()}});
+  document.querySelectorAll("#liveMatches [data-pb]").forEach(b=>b.onclick=()=>{const m=LIVE[+b.dataset.pb];pbSel={fl:m.g.fl,area:m.g.area,sub:m.sub,t:m.t,label:"Pattern match"};render();document.getElementById("playbook").scrollIntoView({block:"center"})});
+  // model card
+  const mx=Math.max(...MODEL.w.map(w=>Math.abs(w)),0.01);
+  $("#modelCard").innerHTML=FEAT.map((f,i)=>{const w=MODEL.w[i];const orr=Math.exp(w);const pctW=Math.abs(w)/mx*50;return `<div class="hbar"><span>${esc(f[1])}</span><span class="tr"><span class="mid"></span><span style="${w>=0?`left:50%;width:${pctW}%;background:var(--pos)`:`right:50%;width:${pctW}%;background:var(--neg)`}"></span></span><span style="font-variant-numeric:tabular-nums">×${orr.toFixed(2)}</span></div>`}).join("")+
+    `<p class="hint" style="margin-top:8px">Trained on ${MODEL.n} rolling 30-day location windows; tested on the latest 80 days it never saw: AUC ${MODEL.auc.toFixed(2)} (0.5 is chance, 1.0 is perfect). Site rate ${Math.round(MODEL.base*100)}% per location per 30 days. Runs in shadow mode until back-tests pass; retrained monthly.</p>`;
+  // playbook
+  const pb=playbookFor(pbSel);$("#pbFor").textContent=`${pbSel.label} · ${pbSel.fl}`;
+  $("#playbook").innerHTML=pb.map(s=>`<div class="step ${s.st}"><span class="no">STEP ${s.no}</span><b>${s.name}</b><p>${esc(s.what)}</p><p style="color:var(--muted)">${esc(s.owner)}</p><span class="pill ${s.st==="done"?"p-good":s.st==="now"?"p-info":"p-mute"}" style="align-self:flex-start">${s.st==="done"?"Done":s.st==="now"?"In progress · due "+s.due:"Due "+s.due}</span></div>`).join("");
+  $("#pbRule").textContent="Assurance rule: an alert closes only after the action is verified in SAP, no related precursor appears at the location for 30 days, and no incident for 90 days. If a precursor repeats, the sequence restarts at step 2 and escalates through the position hierarchy.";
+  // funnel
+  const fo=hbarOpts();mk("chFunnel",{type:"bar",data:{labels:fun.map(f=>f[0]),datasets:[{label:"Alerts",data:fun.map(f=>f[1]),backgroundColor:fun.map((f,i)=>css(i>=4?"--good":"--s1")),...BAR}]},options:fo});
+  // recurrence list
+  const rl={};recur.forEach(r=>{const k=r.fl+"|"+r.ecat;rl[k]=rl[k]||{fl:r.fl,ecat:r.ecat,n:0,sub:r.sub};rl[k].n++});
+  $("#recurList").innerHTML=Object.values(rl).sort((a,b)=>b.n-a.n).slice(0,6).map(x=>`<div class="li"><div><b style="font-family:var(--mono);font-size:12px">${x.fl}</b><small>${esc(CATMAP[x.ecat].short)} · ${esc(x.sub)}: incident recurred within 90 days of closure</small></div><span class="pill p-crit">${x.n}×</span></div>`).join("")||`<p class="hint">No recurrence within 90 days in this selection.</p>`;
+}
+/* ---------- SmartSafe Assistant ---------- */
+const idHash=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)};
+function evidence(r){if(r._ev)return r._ev;const h=idHash(r.id),q=k=>hrand(h*0.013+k*7.77);
+  r._ev={reportLagH:q(1)<.84?Math.round(1+q(2)*20):Math.round(26+q(3)*70),immediate:q(4)<.9,gasTest:q(5)<.8,pmNotif:q(6)<.72,permitRef:q(7)<.85,fireWatch:q(8)<.82,liftPlan:q(9)<.8,barricade:q(10)<.78,workRest:q(11)<.76,hydration:q(12)<.86,marshal:q(13)<.7,clip:q(14)<.9,relReview:q(15)<.74,lesson:q(16)<.7,escalated:q(17)<.8};return r._ev}
+const res=(ok,why)=>({r:ok===null?"n/a":ok?"pass":"gap",why});
+const PROCS=[
+ {id:"SP-01",title:"Incident reporting and investigation",applies:r=>r.type==="INC",reqs:[
+   ["Reported in SAP within 24 hours",r=>{const e=evidence(r);return res(e.reportLagH<=24,`Reported ${e.reportLagH} h after the event`)}],
+   ["Investigation type matches priority (P3 to P5 formal)",r=>res(!(r.pri>=3&&r.inv!=="FORMAL"),`P${r.pri}, ${r.inv.toLowerCase()} investigation`)],
+   ["Formal: RCA complete before closure",r=>r.inv!=="FORMAL"?res(null,"Informal: RCA not required"):res(r.rca==="Complete"||r.status==="Open"&&r.age<45,`RCA ${r.rca.toLowerCase()}`)],
+   ["Closed within the timeline, or extension approved",r=>{if(r.status==="Closed")return res(r.closeDays<=r.tl+(r.ext==="Approved"?45:0),`Closed in ${Math.round(r.closeDays)} days against ${r.tl}`);const o=r.overdueOrig;return res(o<=0||r.ext==="Approved",o>0?`${o} days past the ${r.tl}-day timeline; extension ${String(r.ext||"none").toLowerCase()}`:`Due ${dfmt(r.due)}`)}],
+   ["Corrective actions owned by a position",r=>res(!!r.owner,r.owner)],
+   ["Lessons shared within 30 days of closure",r=>r.status!=="Closed"?res(null,"Not yet closed"):res(evidence(r).lesson,evidence(r).lesson?"Lesson learned published":"No lesson learned record")]]},
+ {id:"SP-02",title:"Near miss and safety observation management",applies:r=>r.type!=="INC",reqs:[
+   ["Reported in SAP within 24 hours",r=>{const e=evidence(r);return res(e.reportLagH<=24,`Reported ${e.reportLagH} h after the event`)}],
+   ["Closed within the timeline",r=>r.status==="Closed"?res(r.closeDays<=r.tl,`Closed in ${Math.round(r.closeDays)} days against ${r.tl}`):res(r.overdue<=0,r.overdue>0?`${r.overdue} days overdue`:`Due ${dfmt(r.due)}`)],
+   ["High-potential items escalated to an investigation lead",r=>!r.hp?res(null,"Not high potential"):res(evidence(r).escalated,evidence(r).escalated?"Escalated":"No escalation recorded")]]},
+ {id:"SP-03",title:"Loss of containment response",applies:r=>/LOPC|Environment/.test(r.sub)||/containment|Leak|Gas alarm/.test(r.title),reqs:[
+   ["Area made safe and isolated, recorded",r=>res(evidence(r).immediate,evidence(r).immediate?"Immediate actions recorded":"No immediate action entry")],
+   ["Gas test recorded before re-entry",r=>res(evidence(r).gasTest,evidence(r).gasTest?"Gas test attached":"No gas test record")],
+   ["PM notification raised for the leaking item",r=>res(evidence(r).pmNotif,evidence(r).pmNotif?"PM notification linked to the same functional location":"No PM notification linked")]]},
+ {id:"SP-04",title:"Hot work",applies:r=>r.sub==="Fire"||/Hot work/.test(r.title),reqs:[
+   ["Valid hot work permit referenced",r=>res(evidence(r).permitRef,evidence(r).permitRef?"Permit number recorded":"No permit reference")],
+   ["Fire watch in place",r=>res(evidence(r).fireWatch,evidence(r).fireWatch?"Fire watch recorded":"Fire watch not recorded")],
+   ["Gas test before work",r=>res(evidence(r).gasTest,evidence(r).gasTest?"Gas test attached":"No gas test record")]]},
+ {id:"SP-05",title:"Lifting operations and exclusion zones",applies:r=>/lifting|Dropped/.test(r.title),reqs:[
+   ["Lift plan referenced",r=>res(evidence(r).liftPlan,evidence(r).liftPlan?"Lift plan recorded":"No lift plan reference")],
+   ["Exclusion zone barricaded",r=>res(evidence(r).barricade,evidence(r).barricade?"Barricade confirmed":"Barricade not confirmed")]]},
+ {id:"SP-06",title:"Heat stress management",applies:r=>r.sub==="Illness"||/Heat stress/.test(r.title),reqs:[
+   ["Work–rest cycle applied",r=>res(evidence(r).workRest,evidence(r).workRest?"Work–rest schedule recorded":"No work–rest record")],
+   ["Shaded hydration point available",r=>res(evidence(r).hydration,evidence(r).hydration?"Hydration point confirmed":"Not confirmed")]]},
+ {id:"SP-07",title:"Site traffic management",applies:r=>r.ecat==="RTA"||/Vehicle/.test(r.title),reqs:[
+   ["Traffic marshal or speed check after the event",r=>res(evidence(r).marshal,evidence(r).marshal?"Marshal deployed":"No traffic control action")],
+   ["Camera clip attached when detected by CCTV",r=>r.source!=="CCTV vision"?res(null,"Not a camera detection"):res(evidence(r).clip,evidence(r).clip?"Clip linked":"Clip missing")]]},
+ {id:"SP-08",title:"Equipment condition and PM follow-up",applies:r=>r.ecat==="IR"||/pump|Defect/.test(r.title),reqs:[
+   ["PM notification against the same functional location",r=>res(evidence(r).pmNotif,evidence(r).pmNotif?"PM notification linked":"No PM notification")],
+   ["Reliability engineer review recorded",r=>res(evidence(r).relReview,evidence(r).relReview?"Review recorded":"No review recorded")]]}
+];
+function verifyRecord(r){return PROCS.filter(p=>p.applies(r)).map(p=>({procedure:p.id,title:p.title,checks:p.reqs.map(([t,f])=>{const x=f(r);return{requirement:t,result:x.r,evidence:x.why}})}))}
+const findRec=id=>recs.find(r=>r.id===String(id).toUpperCase().trim());
+const brief=r=>({id:r.id,type:TYPE_LABEL[r.type],category:CATMAP[r.ecat].short,sub:r.sub,detail:r.title,fl:r.fl,area:r.areaName,created:dfmt(r.created),status:r.status,days_overdue:r.status==="Open"?Math.max(0,r.overdue):null,priority:r.pri?`P${r.pri}`:undefined,high_potential:r.hp,owner:r.owner});
+function withFilters(area,cat,fn){const a=state.area,c=state.cat;state.area=area||"ALL";state.cat=cat||"ALL";try{return fn()}finally{state.area=a;state.cat=c}}
+const areaCode=x=>{if(!x)return null;const s=String(x).toLowerCase().trim();const a=AREAS.find(a=>a.code.toLowerCase()===s)||AREAS.find(a=>a.name.toLowerCase()===s)||AREAS.find(a=>s.length>=4&&a.name.toLowerCase().includes(s))||AREAS.find(a=>s.includes(a.name.toLowerCase().split(/[ ,&]/)[0]));return a?a.code:null};
+const catCode=x=>{if(!x)return null;const s=String(x).toLowerCase().trim();const c=CATS.find(c=>c.code.toLowerCase()===s)||CATS.find(c=>c.short.toLowerCase()===s)||CATS.find(c=>s.length>=4&&c.label.toLowerCase().startsWith(s));return c?c.code:null};
+/* data functions shared by the generative and offline modes */
+const AT={
+  search_records(i){const a=areaCode(i.area),c=catCode(i.category),t={incident:"INC",near:"NM",obs:"OBS",observation:"OBS","near miss":"NM",inc:"INC",nm:"NM"}[String(i.type||"").toLowerCase()]||null;
+    let rs=recs.filter(r=>(!a||r.area===a)&&(!c||r.ecat===c)&&(!t||r.type===t)&&(!i.status||r.status.toLowerCase()===String(i.status).toLowerCase())&&(!i.overdue_only||r.status==="Open"&&r.overdue>0)&&(!i.fl||r.fl.includes(String(i.fl).toUpperCase()))&&(!i.sub||String(r.sub).toLowerCase().includes(String(i.sub).toLowerCase())||r.title.toLowerCase().includes(String(i.sub).toLowerCase()))&&(!i.days||r.age<=Number(i.days)));
+    const total=rs.length;rs=rs.sort((x,y)=>i.overdue_only?(y.overdue-x.overdue):(y.created-x.created)).slice(0,Math.min(25,Number(i.limit)||12));
+    return{total_matching:total,shown:rs.length,records:rs.map(brief)}},
+  get_record(i){const r=findRec(i.id);if(!r)throw new Error("No record with ID "+i.id);const rel=recs.filter(x=>x!==r&&x.fl===r.fl&&x.ecat===r.ecat&&Math.abs(x.created-r.created)<=90*DAY).sort((a,b)=>a.created-b.created).map(x=>({id:x.id,type:TYPE_LABEL[x.type],detail:x.title,created:dfmt(x.created),days_from_this:Math.round((x.created-r.created)/DAY)}));
+    return{...brief(r),due:dfmt(r.due),investigation:r.inv,rca:r.rca,extension:r.ext,cause:r.cause,source:r.source,related_same_location_90d:rel}},
+  verify_against_procedures(i){const r=findRec(i.id);if(!r)throw new Error("No record with ID "+i.id);return{record:brief(r),procedures:verifyRecord(r)}},
+  pattern_analysis(i){return withFilters(areaCode(i.area),catCode(i.category),()=>{const PE=patternEngine();return{rule:"2.5+ related near misses (1 each) and observations (0.5 each) at one location in 30 days, with at least one near miss",baseline_incident_rate_45d:+(PE.base*100).toFixed(1)+"%",by_category:PE.byCat.filter(x=>x.n).map(x=>({category:x.c.short,past_matches:x.n,followed_by_incident_pct:Math.round(x.rate*100),typical_lead_days:x.lead?Math.round(x.lead):null})),live_matches:PE.live.slice(0,8).map(m=>({fl:m.g.fl,category:CATMAP[m.g.ecat].short,sub:m.sub,records:m.seq.map(q=>q.id),days_since_trigger:Math.round((TODAY-m.t)/DAY)}))}})},
+  correlation(i){return withFilters(areaCode(i.area),catCode(i.category),()=>{const rows=areaMonthFeatures();const zs={};IND.forEach(([k])=>{zs[k]=[];[...new Set(rows.map(r=>r.area))].forEach(a=>{const v=rows.filter(r=>r.area===a).map(r=>r[k]);const m=v.reduce((x,y)=>x+y,0)/v.length;const sd=Math.sqrt(v.reduce((x,y)=>x+(y-m)**2,0)/v.length)||1;v.forEach(x=>zs[k].push((x-m)/sd))})});
+    const lag=(k,L)=>{const x=[],y=[];[...new Set(rows.map(r=>r.area))].forEach(a=>{const rr=rows.filter(r=>r.area===a);for(let j=0;j+L<rr.length;j++){x.push(rr[j][k]);y.push(rr[j+L].inc)}});return pearson(x,y)};
+    return{samples:rows.length+" area-months",note:"Correlation is not causation",with_incidents:IND.filter(x=>x[0]!=="inc").map(([k,l])=>({indicator:l,same_month_r:+pearson(zs[k],zs.inc).toFixed(2),r_1_month_ahead:+lag(k,1).toFixed(2),r_2_months_ahead:+lag(k,2).toFixed(2)}))}})},
+  predictive_alerts(i){if(!MODEL)fitModel();const a=areaCode(i.area);return{model:"logistic regression on location history",held_out_auc:+MODEL.auc.toFixed(2),site_rate_30d_pct:Math.round(MODEL.base*100),locations:MODEL.now.filter(x=>!a||x.area===a).slice(0,Math.min(10,Number(i.limit)||6)).map(x=>({fl:x.fl,area:AREAS.find(z=>z.code===x.area).name,likelihood_30d_pct:Math.round(x.p*100),drivers:x.contrib.filter(c=>c.v>0).slice(0,3).map(c=>`${c.label}: ${c.raw}`)}))}},
+  list_procedures(){return PROCS.map(p=>({id:p.id,title:p.title,requirements:p.reqs.map(r=>r[0])}))}
+};
+const TOOLS=[
+ {name:"search_records",description:"Find incidents, near misses and safety observations. Returns up to 25 compact records plus the total matching count. Use overdue_only for late items.",inputSchema:{type:"object",properties:{type:{type:"string",enum:["incident","near miss","observation"]},area:{type:"string",description:"Area name or code, e.g. Hydrocracker or HCU"},category:{type:"string",description:"EHS, I&R, Product Quality, Road Traffic or Security"},sub:{type:"string",description:"Sub-category or detail text, e.g. LOPC, Hot work"},fl:{type:"string",description:"Functional location fragment, e.g. K-201"},status:{type:"string",enum:["Open","Closed"]},overdue_only:{type:"boolean"},days:{type:"number",description:"Only records created in the last N days"},limit:{type:"number"}}}},
+ {name:"get_record",description:"Full facts for one record by ID (e.g. INC-26-0031), including related records at the same location and category within 90 days.",inputSchema:{type:"object",properties:{id:{type:"string"}},required:["id"]}},
+ {name:"verify_against_procedures",description:"Check one record against the applicable procedures. Returns each requirement as pass, gap or n/a with the evidence found.",inputSchema:{type:"object",properties:{id:{type:"string"}},required:["id"]}},
+ {name:"pattern_analysis",description:"Precursor pattern statistics: how often a build-up of related near misses and observations was followed by an incident, by category, plus live matches with no incident yet.",inputSchema:{type:"object",properties:{area:{type:"string"},category:{type:"string"}}}},
+ {name:"correlation",description:"Correlation of leading indicators (near misses, observations, overdue high-potential actions, hot work, PM backlog, heat index) with incidents, same month and 1 to 2 months ahead.",inputSchema:{type:"object",properties:{area:{type:"string"},category:{type:"string"}}}},
+ {name:"predictive_alerts",description:"Locations most likely to record an incident in the next 30 days, with likelihood and drivers, from an explainable model.",inputSchema:{type:"object",properties:{area:{type:"string"},limit:{type:"number"}}}},
+ {name:"list_procedures",description:"The procedure library: IDs, titles and requirements."}
+].map(t=>({...t,execute:(input)=>{const out=AT[t.name](input||{});asTrace(t.name);return out}}));
+function asRules(){const role=$("#asRole").value;const area=role==="custodian"?AREAS.find(a=>a.code===$("#asArea").value):null;
+ return `You are SmartSafe Assistant inside SASREF's safety dashboard (Jubail refinery). You help ${role==="custodian"?`an area custodian responsible for ${area?area.name+" ("+area.code+")":"an area"}`:"an investigation lead"}.
+Rules:
+- Use the tools to get facts. Never invent records, numbers or procedure text. If the data does not answer the question, say so.
+- Cite every record ID (like INC-26-0031) and procedure ID (like SP-03) you rely on, written exactly.
+- Correlation and pattern matches are signals, not proof of cause. Likelihoods are estimates.
+- You advise; people decide. Never say an action was taken or a record changed.
+- The data is illustrative sample data for a demonstration.
+- Today is ${dfmt(TODAY)}. Be concise: short paragraphs or bullets, under 200 words unless asked for more. Plain text with simple "- " bullets and **bold** only.`}
+/* offline engine: same data functions, fixed answer templates */
+function offlineAnswer(q){
+  const s=q.toLowerCase();const idm=q.toUpperCase().match(/\b(INC|NM|OBS)-26-\d{4,5}\b/);const role=$("#asRole").value;
+  let a=areaCode((AREAS.find(x=>s.includes(x.name.toLowerCase().split(/[ ,&]/)[0].toLowerCase())||new RegExp("\\b"+x.code.toLowerCase()+"\\b").test(s))||{}).code)||(role==="custodian"&&/\bmy\b|my area/.test(s)?$("#asArea").value:null);
+  const c=/lopc|leak|containment|fire|injur|ehs|environment/.test(s)?"EHS":/i&r|asset|trip|shutdown|pump/.test(s)?"IR":/traffic|vehicle|road/.test(s)?"RTA":/security/.test(s)?"SEC":/quality|off-spec/.test(s)?"PQ":null;
+  const an=a?AREAS.find(x=>x.code===a).name:"the site";
+  if(idm&&/verif|procedure|complian|check|meet/.test(s)){const v=AT.verify_against_procedures({id:idm[0]});const all=v.procedures.flatMap(p=>p.checks.map(k=>({...k,p:p.procedure})));const gaps=all.filter(k=>k.result==="gap");
+    return `**${idm[0]}** (${v.record.type}, ${v.record.category} · ${v.record.sub}, ${v.record.fl}) was checked against ${v.procedures.map(p=>`${p.procedure} ${p.title}`).join(", ")}.\n\n${gaps.length?`**${gaps.length} gap${gaps.length>1?"s":""} found:**\n${gaps.map(g=>`- ${g.p}: ${g.requirement}. ${g.evidence}.`).join("\n")}`:"**No gaps found.** Every applicable requirement has evidence."}\n\n${all.filter(k=>k.result==="pass").length} requirements met; ${all.filter(k=>k.result==="n/a").length} not applicable. The full checklist is in the side panel.`}
+  if(idm){const r=AT.get_record({id:idm[0]});const rel=r.related_same_location_90d;
+    return `**${r.id}**: ${r.type}, ${r.category} · ${r.sub} (${r.detail}) at ${r.fl}, ${r.area}. Created ${r.created}; ${r.status.toLowerCase()}${r.days_overdue?`, ${r.days_overdue} days overdue`:""}. Owner: ${r.owner}.${r.priority?` Priority ${r.priority}, ${String(r.investigation).toLowerCase()} investigation, RCA ${String(r.rca||"n/a").toLowerCase()}.`:""}\n\n${rel.length?`**${rel.length} related record${rel.length>1?"s":""} at the same location within 90 days:**\n${rel.slice(0,6).map(x=>`- ${x.id} ${x.type.toLowerCase()}: ${x.detail} (${x.days_from_this>0?"+":""}${x.days_from_this} days)`).join("\n")}`:"No related records at this location within 90 days."}\n\nAsk "verify ${r.id} against procedures" for the procedure check.`}
+  if(/correl|relat|driv|cause|connect/.test(s)){const k=AT.correlation({area:a,category:c});const top=k.with_incidents.slice().sort((x,y)=>Math.max(y.same_month_r,y.r_1_month_ahead)-Math.max(x.same_month_r,x.r_1_month_ahead));
+    return `Correlation with ${c?CATMAP[c].short+" ":""}incidents in ${an} (${k.samples}, month-to-month changes):\n${top.map(x=>`- **${x.indicator}**: same month r = ${x.same_month_r}, one month ahead r = ${x.r_1_month_ahead}`).join("\n")}\n\nThe strongest early signal is **${top[0].indicator.toLowerCase()}**. Correlation is a signal to investigate, not proof of cause.`}
+  if(/pattern|repeat|precursor|sequence|trend|recur/.test(s)){const p=AT.pattern_analysis({area:a,category:c});
+    return `Precursor rule: ${p.rule}. Background incident rate is ${p.baseline_incident_rate_45d} per location in 45 days.\n${p.by_category.map(x=>`- **${x.category}**: ${x.past_matches} past matches, ${x.followed_by_incident_pct}% followed by an incident${x.typical_lead_days?`, typically within ${x.typical_lead_days} days`:""}`).join("\n")}\n\n${p.live_matches.length?`**Live matches in ${an} with no incident yet:**\n${p.live_matches.slice(0,5).map(m=>`- ${m.fl} (${m.category} · ${m.sub}): ${m.records.join(", ")}`).join("\n")}`:`No live matches in ${an}.`}`}
+  if(/predict|likel|risk|next|forecast|chance|probab/.test(s)){const p=AT.predictive_alerts({area:a,limit:6});
+    return `Locations in ${an} most likely to record an incident in the next 30 days (site rate ${p.site_rate_30d_pct}%; model back-test AUC ${p.held_out_auc}):\n${p.locations.map(x=>`- **${x.fl}** (${x.area}): ${x.likelihood_30d_pct}%. ${x.drivers.join("; ")}`).join("\n")}\n\nThese are estimates. Each one follows the alert-to-assurance sequence on the Patterns & prediction tab.`}
+  if(/overdue|open|late|backlog|pending|my area|my items/.test(s)||role==="custodian"&&/\bmy\b/.test(s)){const k=AT.search_records({area:a,category:c,overdue_only:true,limit:8});
+    return `**${k.total_matching} overdue open records** in ${an}${c?` (${CATMAP[c].short})`:""}. Most overdue:\n${k.records.map(r=>`- ${r.id} ${r.type.toLowerCase()}: ${r.detail} at ${r.fl}, ${r.days_overdue} days overdue (${r.owner})`).join("\n")}`}
+  if(/procedure|sp-0/.test(s)){return `Procedure library (sample):\n${AT.list_procedures().map(p=>`- **${p.id}** ${p.title}: ${p.requirements.join("; ")}`).join("\n")}`}
+  return `I can answer questions like:\n- What is overdue in my area?\n- Summarise INC-26-0031 and related events\n- Verify INC-26-0031 against procedures\n- What correlates with incidents in Hydrocracker?\n- Are there repeat patterns at my locations?\n- Which locations are most likely to have an incident next month?`}
+/* chat UI */
+let AS={turns:[],sample:null,tools:false,busy:null,mode:"offline"};
+function mdLite(t){const lines=esc(t).split("\n");let html="",inList=false;
+  lines.forEach(l=>{const b=l.match(/^\s*[-•*]\s+(.*)/);if(b){if(!inList){html+="<ul>";inList=true}html+=`<li>${b[1]}</li>`}else{if(inList){html+="</ul>";inList=false}if(l.trim())html+=`<p>${l}</p>`}});if(inList)html+="</ul>";
+  return html.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\b((?:INC|NM|OBS)-26-\d{4,5})\b/g,`<button type="button" class="ref" data-rec="$1">$1</button>`).replace(/\b(SP-0\d)\b/g,`<span class="ref" title="Procedure">$1</span>`)}
+function addMsg(role,text,meta){const d=document.createElement("div");d.className="msg "+role;if(role==="user")d.textContent=text;else d.innerHTML=mdLite(text)+(meta?`<span class="meta">${esc(meta)}</span>`:"");$("#chatlog").appendChild(d);$("#chatlog").scrollTop=1e9;return d}
+let traceEl=null;function asTrace(name){if(traceEl){const m={search_records:"Searching records",get_record:"Reading the record",verify_against_procedures:"Checking procedures",pattern_analysis:"Analysing patterns",correlation:"Computing correlations",predictive_alerts:"Reading the likelihood model",list_procedures:"Reading the procedure library"}[name]||name;traceEl.dataset.steps=(traceEl.dataset.steps?traceEl.dataset.steps+" · ":"")+m;if(traceEl.classList.contains("think"))traceEl.textContent=traceEl.dataset.steps+"…"}}
+function showRec(id){const r=findRec(id);if(!r)return;const v=verifyRecord(r);
+  $("#recPanel").innerHTML=`<div class="rfacts"><span>Record</span><b style="font-family:var(--mono)">${r.id}</b><span>Type</span><span>${TYPE_LABEL[r.type]}${r.inv?` · ${r.inv.toLowerCase()}`:""}${r.pri?` · P${r.pri}`:""}</span><span>Category</span><span>${esc(CATMAP[r.ecat].short)} · ${esc(r.sub)}</span><span>Detail</span><span>${esc(r.title)}</span><span>Location</span><span style="font-family:var(--mono)">${r.fl}</span><span>Owner</span><span>${esc(r.owner)}</span><span>Status</span><span>${statusPill(r)}</span></div>`+
+   v.map(p=>`<div style="margin-top:8px"><b style="font-size:12.5px">${p.procedure} ${esc(p.title)}</b>${p.checks.map(k=>`<div class="chk"><span class="pill ${k.result==="pass"?"p-good":k.result==="gap"?"p-crit":"p-mute"}">${k.result==="pass"?"Met":k.result==="gap"?"Gap":"N/A"}</span><span>${esc(k.requirement)}</span><span class="why">${esc(k.evidence)}</span></div>`).join("")}</div>`).join("")}
+function asSuggestions(){const role=$("#asRole").value;const a=$("#asArea").value;const an=AREAS.find(x=>x.code===a).name;
+  const fo=recs.filter(r=>r.type==="INC"&&r.inv==="FORMAL"&&r.status==="Open").sort((x,y)=>y.overdueOrig-x.overdueOrig)[0]||recs.find(r=>r.type==="INC");
+  const ao=recs.filter(r=>r.area===a&&r.status==="Open"&&r.type!=="OBS").sort((x,y)=>y.overdue-x.overdue)[0]||fo;
+  const L=role==="custodian"?[`What is overdue in my area?`,`Are there repeat patterns at my locations in ${an}?`,`Which locations in ${an} are most likely to have an incident next month?`,`Verify ${ao.id} against procedures`]:
+    [`Summarise ${fo.id} and related events`,`Verify ${fo.id} against procedures`,`What correlates with LOPC and fire incidents?`,`Show precursor patterns for I&R events`];
+  $("#sugs").innerHTML=L.map(x=>`<button type="button" class="sug">${esc(x)}</button>`).join("")}
+async function asAsk(q){if(!q.trim()||AS.busy)return;addMsg("user",q);$("#chatInput").value="";
+  const mR=q.toUpperCase().match(/\b(INC|NM|OBS)-26-\d{4,5}\b/);if(mR&&findRec(mR[0]))showRec(mR[0]);
+  if(AS.mode!=="genai"){const t=offlineAnswer(q);addMsg("bot",t,"Offline answer from the dashboard's data");const ids=t.match(/\b(?:INC|NM|OBS)-26-\d{4,5}\b/);if(ids&&!mR)showRec(ids[0]);return}
+  AS.turns.push({role:"user",content:q});const el=addMsg("bot","");el.classList.add("think");el.textContent="Thinking…";traceEl=el;
+  const ctl=new AbortController();AS.busy=ctl;$("#chatStop").hidden=false;$("#chatSend").disabled=true;
+  try{const {text}=await AS.sample([{role:"user",content:asRules()},...AS.turns.slice(-8)],{tools:AS.tools?TOOLS:undefined,signal:ctl.signal,onText:({text})=>{el.classList.remove("think");el.innerHTML=mdLite(text)}});
+    el.classList.remove("think");el.innerHTML=mdLite(text)+`<span class="meta">Generative answer${el.dataset.steps?" · "+esc(el.dataset.steps):""}</span>`;AS.turns.push({role:"assistant",content:text});
+    const ids=text.match(/\b(?:INC|NM|OBS)-26-\d{4,5}\b/);if(ids&&!mR)showRec(ids[0])}
+  catch(e){el.classList.remove("think");const keep=e&&e.text?mdLite(e.text):"";
+    if(e&&(e.code==="not_granted"||e.code==="sampling_disabled"||e.code==="capability_disabled"||e.code==="not_declared"||e.code==="tools_unavailable")){setAsMode("offline","Generative answers are not allowed in this view, so answers come from fixed rules over the same data.");AS.turns.pop();const t=offlineAnswer(q);el.innerHTML=mdLite(t)+`<span class="meta">Offline answer from the dashboard's data</span>`}
+    else if(e&&e.code==="cancelled"){el.innerHTML=keep+`<span class="meta">Stopped</span>`;AS.turns.pop()}
+    else{el.innerHTML=keep+`<span class="meta">${e&&e.code==="rate_limited"?"Too many questions just now. Try again in a minute.":"The answer was interrupted. Ask again."}</span>`;AS.turns.pop()}}
+  finally{AS.busy=null;traceEl=null;$("#chatStop").hidden=true;$("#chatSend").disabled=false}}
+function setAsMode(m,hint){AS.mode=m;$("#asMode").className="pill "+(m==="genai"?"p-info":"p-mute");$("#asMode").textContent=m==="genai"?"Generative AI":"Offline demo";$("#asModeHint").textContent=hint}
+function asWelcome(){$("#chatlog").innerHTML="";AS.turns=[];const role=$("#asRole").value;const an=AREAS.find(x=>x.code===$("#asArea").value).name;
+  addMsg("bot",role==="custodian"?`Hello. I can show what is overdue in **${an}**, find repeat patterns at your locations, rank where an incident is most likely next, and check any record against the procedures. Pick a question below or type your own.`:`Hello. I can summarise a record with related events at the same location, check it against the procedures, and show which indicators correlate with incidents. Pick a question below or type your own.`);asSuggestions()}
+(function initAssistant(){
+  $("#asArea").innerHTML=AREAS.map(a=>`<option value="${a.code}">${a.name}</option>`).join("");$("#asArea").value="HCU";
+  $("#procList").innerHTML=PROCS.map(p=>`<div class="li"><div><b style="font-family:var(--mono);font-size:12px">${p.id}</b> ${esc(p.title)}<small>${p.reqs.map(r=>esc(r[0])).join(" · ")}</small></div></div>`).join("");
+  const sync=()=>{$("#asAreaWrap").hidden=$("#asRole").value!=="custodian";asWelcome()};
+  $("#asRole").addEventListener("change",sync);$("#asArea").addEventListener("change",asWelcome);$("#asClear").addEventListener("click",asWelcome);
+  $("#sugs").addEventListener("click",e=>{const b=e.target.closest(".sug");if(b)asAsk(b.textContent)});
+  $("#chatlog").addEventListener("click",e=>{const b=e.target.closest("[data-rec]");if(b)showRec(b.dataset.rec)});
+  $("#chatForm").addEventListener("submit",e=>{e.preventDefault();asAsk($("#chatInput").value)});
+  $("#chatInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();asAsk($("#chatInput").value)}});
+  $("#chatStop").addEventListener("click",()=>AS.busy&&AS.busy.abort());
+  sync();
+  setAsMode("offline","Offline demo: answers are built from the dashboard's data by fixed rules. Inside the hosted SASREF version, a generative model writes the answers using the same data tools.");
+  if(window.claude&&typeof window.claude.use==="function"){window.claude.use("sample").then(async s=>{if(!s)return;AS.sample=s;let lim=null;try{lim=await s.limits()}catch(e){}AS.tools=!!(lim&&lim.tools&&lim.tools.maxCount>=TOOLS.length);
+    if(AS.tools)setAsMode("genai","Generative answers by Claude, using read-only tools over the dashboard's data. The first question asks you to allow it, and uses your own Claude usage.")}).catch(()=>{})}
+})();
 /* ---------- wiring ---------- */
 function setTab(t){
   state.tab=t;
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
-  ["overview","incidents","nearmiss","obs","outlook"].forEach(id=>document.getElementById("t-"+id).hidden=id!==t);
+  ["overview","incidents","nearmiss","obs","predict","outlook","assist"].forEach(id=>document.getElementById("t-"+id).hidden=id!==t);
   try{localStorage.setItem("sasref-si-tab",t)}catch(e){}
   render();
 }
 document.getElementById("tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(b){setTab(b.dataset.tab);window.scrollTo({top:0})}});
-fArea.addEventListener("change",()=>{state.area=fArea.value;render()});
-fCat.addEventListener("change",()=>{state.cat=fCat.value;render()});
+fArea.addEventListener("change",()=>{state.area=fArea.value;pbSel=null;render()});
+fCat.addEventListener("change",()=>{state.cat=fCat.value;pbSel=null;render()});
 document.getElementById("catTable").addEventListener("click",e=>{const tr=e.target.closest("tr[data-cat]");if(!tr)return;state.cat=state.cat===tr.dataset.cat?"ALL":tr.dataset.cat;fCat.value=state.cat;render()});
 $("#fPeriod").addEventListener("change",e=>{state.months=+e.target.value;render()});
 $("#ovType").addEventListener("change",render);
